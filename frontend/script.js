@@ -9,6 +9,15 @@ const loadingMessages = [
   "Building your career roadmap...",
 ];
 
+const publicProfileMessages = [
+  "Scanning your public profiles...",
+  "Analysing your GitHub activity...",
+  "Reading your LinkedIn presence...",
+  "Detecting patterns and interests...",
+  "Identifying hidden talents...",
+  "Building your personalized report...",
+];
+
 const socialPlatforms = [
   { key: "linkedin", name: "LinkedIn", color: "#0A66C2", icon: "linkedin", base: "https://www.linkedin.com/in/" },
   { key: "github", name: "GitHub", color: "#181717", icon: "github", base: "https://github.com/" },
@@ -216,6 +225,7 @@ const state = {
 const authShell = document.querySelector("#authShell");
 const appShell = document.querySelector("#appShell");
 const socialShell = document.querySelector("#socialShell");
+const choiceShell = document.querySelector("#choiceShell");
 const quizShell = document.querySelector("#quizShell");
 const reportShell = document.querySelector("#reportShell");
 const questionMount = document.querySelector("#questionMount");
@@ -358,9 +368,12 @@ async function bootApp() {
     return;
   }
 
-  state.currentIndex = questions.findIndex((question) => !isAnswerFilled(state.answers[question.id]));
-  if (state.currentIndex === -1) state.currentIndex = questions.length - 1;
-  renderQuestion();
+  if (Object.keys(state.answers).length) {
+    startQuestionnaire();
+    return;
+  }
+
+  renderChoice();
 }
 
 function markFlow(flow) {
@@ -369,6 +382,7 @@ function markFlow(flow) {
 
 function renderSocials() {
   socialShell.classList.remove("hidden");
+  choiceShell.classList.add("hidden");
   quizShell.classList.add("hidden");
   reportShell.classList.add("hidden");
   markFlow("social");
@@ -385,12 +399,23 @@ function renderSocials() {
 }
 
 function continueAfterSocials() {
-  if (state.report) {
-    renderReport(state.report);
-    return;
-  }
+  renderChoice();
+}
+
+function renderChoice() {
+  socialShell.classList.add("hidden");
+  choiceShell.classList.remove("hidden");
+  quizShell.classList.add("hidden");
+  reportShell.classList.add("hidden");
+  markFlow("social");
+}
+
+function startQuestionnaire() {
+  socialShell.classList.add("hidden");
+  choiceShell.classList.add("hidden");
+  reportShell.classList.add("hidden");
   state.currentIndex = questions.findIndex((question) => !isAnswerFilled(state.answers[question.id]));
-  if (state.currentIndex === -1) state.currentIndex = questions.length - 1;
+  if (state.currentIndex === -1) state.currentIndex = 0;
   renderQuestion();
 }
 
@@ -454,6 +479,7 @@ function sectionTitle(section) {
 
 function renderQuestion() {
   socialShell.classList.add("hidden");
+  choiceShell.classList.add("hidden");
   quizShell.classList.remove("hidden");
   reportShell.classList.add("hidden");
 
@@ -584,17 +610,21 @@ function renumberRanking() {
   });
 }
 
-function showGenerationOverlay(show) {
+function showGenerationOverlay(show, messages = loadingMessages, intervalMs = 1400) {
   const overlay = document.querySelector("#loadingOverlay");
+  const progress = document.querySelector("#loadingProgress");
   overlay.classList.toggle("hidden", !show);
   window.clearInterval(state.loadingTimer);
+  if (progress) progress.style.width = "0%";
   if (!show) return;
   let index = 0;
-  document.querySelector("#loadingMessage").textContent = loadingMessages[index];
+  document.querySelector("#loadingMessage").textContent = messages[index];
+  if (progress) progress.style.width = `${100 / messages.length}%`;
   state.loadingTimer = window.setInterval(() => {
-    index = (index + 1) % loadingMessages.length;
-    document.querySelector("#loadingMessage").textContent = loadingMessages[index];
-  }, 1400);
+    index = Math.min(index + 1, messages.length - 1);
+    document.querySelector("#loadingMessage").textContent = messages[index];
+    if (progress) progress.style.width = `${((index + 1) / messages.length) * 100}%`;
+  }, intervalMs);
 }
 
 async function generateReport() {
@@ -608,15 +638,41 @@ async function generateReport() {
   }
 }
 
+function delay(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+async function generatePublicDataReport() {
+  showGenerationOverlay(true, publicProfileMessages, 1800);
+  try {
+    const [data] = await Promise.all([
+      request("/api/talent/public-report", { method: "POST", body: "{}" }),
+      delay(10800),
+    ]);
+    state.report = data.report;
+    renderReport(data.report);
+  } finally {
+    showGenerationOverlay(false);
+  }
+}
+
 function renderReport(report) {
   socialShell.classList.add("hidden");
+  choiceShell.classList.add("hidden");
   quizShell.classList.add("hidden");
   reportShell.classList.remove("hidden");
   markFlow("report");
   const skills = Object.entries(report.skill_strength_scores || {}).slice(0, 5);
   const roadmap = String(report.career_roadmap || "").split("|").map((item) => item.trim()).filter(Boolean);
+  const publicDataBanner = report.report_type === "public_data" ? `
+    <aside class="report-warning">
+      <p><strong>Limited data report</strong><span>This report is based on limited public data. Take the full assessment for a deeper and more accurate analysis.</span></p>
+      <button class="secondary-button" id="takeFullAssessment" type="button">Take Full Assessment</button>
+    </aside>
+  ` : "";
 
   document.querySelector("#reportMount").innerHTML = `
+    ${publicDataBanner}
     <header class="report-header">
       <div><p class="eyebrow">AI talent report</p><h2>${escapeHtml(state.user?.name || "Your")} Hidden Talent Profile</h2></div>
       <div class="report-actions"><button class="secondary-button" id="downloadReport" type="button">Download Report as PDF</button><button class="ghost-button" id="retakeAssessment" type="button">Retake Assessment</button></div>
@@ -664,6 +720,7 @@ function renderReport(report) {
 
   document.querySelector("#downloadReport").addEventListener("click", () => window.print());
   document.querySelector("#retakeAssessment").addEventListener("click", retakeAssessment);
+  document.querySelector("#takeFullAssessment")?.addEventListener("click", startQuestionnaire);
 }
 
 async function retakeAssessment() {
@@ -742,14 +799,9 @@ document.querySelector("#socialForm").addEventListener("submit", async (event) =
   }
 });
 
-document.querySelector("#skipSocials").addEventListener("click", async () => {
-  const data = await request("/api/socials", { method: "POST", body: JSON.stringify(emptySocials) });
-  state.socials = { ...emptySocials, ...data.socials };
-  state.socialsSaved = true;
-  continueAfterSocials();
-});
-
 document.querySelector("#editSocialsButton").addEventListener("click", () => renderSocials());
+document.querySelector("#startQuestionnaire").addEventListener("click", startQuestionnaire);
+document.querySelector("#generatePublicReport").addEventListener("click", generatePublicDataReport);
 
 document.querySelectorAll("[data-auth-view]").forEach((button) => button.addEventListener("click", () => showAuthView(button.dataset.authView)));
 document.querySelectorAll("[data-toggle]").forEach((button) => button.addEventListener("click", () => {

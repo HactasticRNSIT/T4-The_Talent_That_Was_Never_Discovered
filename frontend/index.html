@@ -110,11 +110,32 @@
           <p class="social-note">Fill whichever you have. The more you share, the better we understand you.</p>
           <div class="social-list" id="socialList"></div>
           <div class="form-actions">
-            <button class="ghost-button" id="skipSocials" type="button">Skip for Now</button>
             <p class="autosave" id="socialMessage" aria-live="polite"></p>
             <button class="primary-button" type="submit">Save & Continue</button>
           </div>
         </form>
+      </section>
+
+      <section class="choice-shell hidden" id="choiceShell">
+        <div class="choice-hero">
+          <p class="eyebrow">Discovery mode</p>
+          <h2>How would you like to discover your talents?</h2>
+          <p>Choose how you want us to analyse your potential</p>
+        </div>
+        <div class="choice-grid">
+          <article class="choice-card">
+            <span class="choice-icon" aria-hidden="true">📝</span>
+            <h3>Take the Full Assessment</h3>
+            <p>Answer 30 carefully designed questions across 3 sections. Get the most accurate and personalized talent report.</p>
+            <button class="primary-button" id="startQuestionnaire" type="button">Start Questionnaire</button>
+          </article>
+          <article class="choice-card">
+            <span class="choice-icon" aria-hidden="true">🌐</span>
+            <h3>Generate from My Public Profiles</h3>
+            <p>We'll analyse your publicly available social media and professional profiles to generate your talent report instantly.</p>
+            <button class="primary-button" id="generatePublicReport" type="button">Generate My Report</button>
+          </article>
+        </div>
       </section>
 
       <section class="quiz-shell" id="quizShell">
@@ -143,6 +164,7 @@
       <div class="loader-ring"></div>
       <h2>Generating your talent report</h2>
       <p id="loadingMessage">Analysing your strengths...</p>
+      <div class="loading-progress-track"><div id="loadingProgress"></div></div>
     </section>
 
     <script src="script.js"></script>

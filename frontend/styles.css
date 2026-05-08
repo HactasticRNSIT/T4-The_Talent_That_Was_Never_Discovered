@@ -431,11 +431,93 @@ form {
   color: var(--accent-strong);
 }
 
+.choice-shell,
 .quiz-shell,
 .report-shell,
 .social-shell {
   max-width: 1040px;
   margin: 0 auto;
+}
+
+.choice-shell {
+  min-height: calc(100vh - 126px);
+  display: grid;
+  align-content: center;
+  gap: 22px;
+  animation: rise 220ms ease both;
+}
+
+.choice-hero {
+  max-width: 760px;
+}
+
+.choice-hero h2 {
+  margin-bottom: 10px;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.choice-hero p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.choice-card {
+  min-height: 330px;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  border: 1px solid rgba(15, 123, 104, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(160deg, rgba(217, 165, 43, 0.12), transparent 36%),
+    linear-gradient(20deg, rgba(39, 109, 156, 0.09), transparent 42%),
+    rgba(255, 255, 255, 0.96);
+  box-shadow: var(--shadow);
+  padding: 26px;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.choice-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(15, 123, 104, 0.42);
+  box-shadow: 0 30px 70px rgba(23, 33, 29, 0.16);
+}
+
+.choice-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #e4f2ec;
+  font-size: 1.9rem;
+}
+
+.choice-card h3 {
+  margin: 0;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+}
+
+.choice-card p {
+  color: #3d4f47;
+  line-height: 1.65;
+}
+
+.choice-card .primary-button {
+  align-self: end;
+  justify-self: start;
 }
 
 .social-card {
@@ -796,6 +878,22 @@ form {
   font-weight: 800;
 }
 
+.loading-progress-track {
+  width: min(420px, 82vw);
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dce6e0;
+}
+
+.loading-progress-track div {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--gold));
+  transition: width 650ms ease;
+}
+
 .report-header {
   justify-content: space-between;
   margin-bottom: 18px;
@@ -808,6 +906,35 @@ form {
 
 .report-section {
   margin-bottom: 18px;
+}
+
+.report-warning {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 18px;
+  border: 1px solid #ead59d;
+  border-radius: 8px;
+  background: #fff8e7;
+  padding: 16px;
+}
+
+.report-warning p {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  color: #5d4611;
+  line-height: 1.45;
+}
+
+.report-warning strong::before {
+  content: "⚠️ ";
+}
+
+.report-warning span {
+  color: #745716;
+  font-weight: 700;
 }
 
 .report-grid {
@@ -1059,12 +1186,22 @@ form {
     width: 100%;
   }
 
+  .choice-grid,
   .report-grid.two,
   .report-grid.three,
   .talent-grid,
   .career-grid,
   .future-grid {
     grid-template-columns: 1fr;
+  }
+
+  .choice-shell {
+    min-height: auto;
+  }
+
+  .report-warning {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 
@@ -1076,6 +1213,7 @@ form {
 
   .brand-panel,
   .auth-panel,
+  .choice-card,
   .question-card,
   .section-hero,
   .report-section {

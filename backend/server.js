@@ -462,6 +462,83 @@ function localTalentReport(answers, quizRecord = null) {
   };
 }
 
+function publicProfileTalentReport(socials = {}, user = {}) {
+  const filledProfiles = socialFields.filter((field) => cleanText(socials[field]));
+  const hasGithub = Boolean(cleanText(socials.github));
+  const hasLinkedin = Boolean(cleanText(socials.linkedin));
+  const hasCreative = ["instagram", "youtube", "snapchat"].some((field) => cleanText(socials[field]));
+  const hasCommunity = ["reddit", "quora", "facebook", "twitter"].some((field) => cleanText(socials[field]));
+
+  const skill_strength_scores = {
+    "Digital Presence": clampScore(7.1 + filledProfiles.length * 0.16),
+    "Technical Building": clampScore(hasGithub ? 8.4 : 6.7),
+    Communication: clampScore(hasLinkedin || hasCommunity ? 7.8 : 6.6),
+    "Creative Ideation": clampScore(hasCreative ? 8.1 : 6.9),
+    "Problem Solving": clampScore(hasGithub || hasCommunity ? 7.9 : 6.8),
+  };
+
+  return {
+    report_type: "public_data",
+    hidden_talents: [
+      "Digital portfolio building potential",
+      hasGithub ? "Technical project execution" : "Structured online learning potential",
+      hasCreative ? "Creative content expression" : "Clear personal brand development",
+      hasCommunity ? "Community insight and communication" : "Independent learning discipline",
+    ],
+    top_5_skills: Object.keys(skill_strength_scores),
+    skill_strength_scores,
+    personality_traits: [
+      "Digitally curious",
+      hasGithub ? "Builder-minded" : "Exploratory",
+      hasLinkedin ? "Career-aware" : "Self-directed",
+      hasCreative ? "Expressive" : "Thoughtful",
+      hasCommunity ? "Community-oriented" : "Focused",
+    ],
+    leadership_potential: {
+      score: hasLinkedin || hasCommunity ? 8 : 7,
+      analysis:
+        "Your public profile footprint suggests emerging leadership through communication, self-presentation, and the ability to connect interests into visible work.",
+    },
+    creativity_analysis:
+      hasCreative
+        ? "Your public presence shows signs of creative expression and audience awareness. This can become a strong advantage when paired with consistent projects and a clear portfolio."
+        : "Your creativity appears more strategic than performative from the available public data, showing up through how you organize interests and present your learning path.",
+    communication_eq_analysis:
+      "Your available public profiles suggest practical communication ability: presenting yourself clearly, sharing interests, and building a recognizable online identity.",
+    learning_style:
+      "Self-directed digital learning with visible proof of work, profile building, and iterative improvement.",
+    best_career_paths: [
+      hasGithub ? "Software Developer or AI Product Builder" : "Digital Product Associate",
+      hasCreative ? "Content Strategist or Creative Technologist" : "UX Researcher or Product Analyst",
+      hasLinkedin ? "Product Manager or Program Lead" : "Community Manager or Learning Designer",
+    ],
+    emerging_careers: [
+      "AI Product Builder",
+      "Creator-Operator",
+      "Digital Portfolio Strategist",
+      "Human-Centered Data Analyst",
+    ],
+    entrepreneurial_potential_score: filledProfiles.length >= 4 ? 8 : 7,
+    most_underrated_talent: "Turning online signals into career direction",
+    unrealized_potential: [
+      "Convert scattered interests into one polished public portfolio.",
+      "Add measurable outcomes to projects, posts, or profile descriptions.",
+      "Use public work samples to validate strengths before choosing a career path.",
+    ],
+    skill_improvements: [
+      "Create one portfolio page that connects your projects, profiles, and goals.",
+      "Publish one small project or learning note every two weeks.",
+      "Add clear descriptions, outcomes, and tools used to each public project.",
+      "Ask a mentor or peer to review your profile positioning once per month.",
+    ],
+    career_roadmap:
+      "0-3 months: clean up public profiles and collect your best work in one place. | 3-6 months: publish two small projects with outcomes and reflections. | 6-12 months: choose one career theme and build a portfolio around it. | 1-2 years: pursue internships, competitions, freelance work, or mentorship tied to your strongest public signals.",
+    final_summary:
+      `${user.name || "Your"} public data suggests a digitally curious learner with potential in communication, self-directed growth, and project-based skill building. This report is intentionally limited because public profiles reveal signals, not the full story. A full questionnaire can sharpen these findings with motivation, confidence, personality, and deeper career-fit context.`,
+    source: "public-profile-placeholder",
+  };
+}
+
 async function generateTalentReport(answers, quizRecord = null) {
   if (!process.env.OPENAI_API_KEY) return localTalentReport(answers, quizRecord);
 
@@ -716,10 +793,33 @@ app.post("/api/talent/analyse", requireAuth, async (req, res) => {
     id: crypto.randomUUID(),
     userId: req.auth.sub,
     ...generated,
+    report_type: "questionnaire",
     section1_talent_tag: quizRecord.section1_talent_tag,
     generatedAt: new Date().toISOString(),
   };
   const reports = await readCollection("talentReports");
+  reports.push(report);
+  await writeCollection("talentReports", reports);
+  return res.json({ report });
+});
+
+app.post("/api/talent/public-report", requireAuth, async (req, res) => {
+  const [users, socials, reports] = await Promise.all([
+    readCollection("users"),
+    readCollection("userSocials"),
+    readCollection("talentReports"),
+  ]);
+  const user = users.find((item) => item.id === req.auth.sub);
+  if (!user) return res.status(404).json({ message: "User not found." });
+
+  const generated = publicProfileTalentReport(socials.find((item) => item.userId === req.auth.sub) || {}, publicUser(user));
+  const report = {
+    id: crypto.randomUUID(),
+    userId: req.auth.sub,
+    ...generated,
+    report_type: "public_data",
+    generatedAt: new Date().toISOString(),
+  };
   reports.push(report);
   await writeCollection("talentReports", reports);
   return res.json({ report });
