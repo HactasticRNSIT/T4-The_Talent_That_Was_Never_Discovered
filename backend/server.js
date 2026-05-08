@@ -24,7 +24,20 @@ const files = {
   talentReports: path.join(DATA_DIR, "talent-reports.json"),
 };
 
-const socialFields = ["linkedin", "github", "snapchat", "instagram", "facebook", "twitter", "reddit", "quora", "youtube"];
+const socialFields = [
+  "linkedin",
+  "github",
+  "snapchat",
+  "instagram",
+  "facebook",
+  "twitter",
+  "reddit",
+  "quora",
+  "youtube",
+  "chatgpt",
+  "claude",
+  "gemini",
+];
 
 app.use(express.json({ limit: "1mb" }));
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));

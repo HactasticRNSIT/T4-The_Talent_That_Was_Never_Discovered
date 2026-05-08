@@ -19,6 +19,9 @@ const socialPlatforms = [
   { key: "reddit", name: "Reddit", color: "#FF4500", icon: "reddit", base: "https://www.reddit.com/user/" },
   { key: "quora", name: "Quora", color: "#B92B27", icon: "quora", base: "https://www.quora.com/profile/" },
   { key: "youtube", name: "YouTube", color: "#FF0000", icon: "youtube", base: "https://www.youtube.com/@" },
+  { key: "chatgpt", name: "ChatGPT", color: "#10A37F", icon: "openai", base: "https://chatgpt.com/" },
+  { key: "claude", name: "Claude", color: "#D97757", icon: "claude", base: "https://claude.ai/" },
+  { key: "gemini", name: "Gemini", color: "#4285F4", icon: "googlegemini", base: "https://gemini.google.com/" },
 ];
 
 const emptySocials = Object.fromEntries(socialPlatforms.map((platform) => [platform.key, ""]));

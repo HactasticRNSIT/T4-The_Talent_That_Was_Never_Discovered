@@ -45,7 +45,7 @@ Protected app:
 Login -> Complete Profile -> Section 1 (Q1-Q10) -> Section 2 (Q11-Q20) -> Section 3 (Q21-Q30) -> AI Report
 ```
 
-The social profile step stores optional LinkedIn, GitHub, Snapchat, Instagram, Facebook, Twitter/X, Reddit, Quora, and YouTube values in `backend/data/user-socials.json`.
+The social profile step stores optional LinkedIn, GitHub, Snapchat, Instagram, Facebook, Twitter/X, Reddit, Quora, YouTube, ChatGPT, Claude, and Gemini values in `backend/data/user-socials.json`.
 
 The final report includes personality traits, learning style, skill strength bars, hidden talents, leadership and entrepreneurial scores, career paths, roadmap, improvement suggestions, PDF print/download, and retake support.
 
