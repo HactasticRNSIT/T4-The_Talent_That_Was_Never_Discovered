@@ -19,6 +19,7 @@ const OTP_TTL_MS = 5 * 60 * 1000;
 
 const files = {
   users: path.join(DATA_DIR, "users.json"),
+  userProfiles: path.join(DATA_DIR, "user-profiles.json"),
   userSocials: path.join(DATA_DIR, "user-socials.json"),
   talentAnswers: path.join(DATA_DIR, "talent-answers.json"),
   talentQuizRecords: path.join(DATA_DIR, "talent-quiz-records.json"),
@@ -208,6 +209,28 @@ function isValidSocialValue(value) {
 
 function normalizeSocials(body) {
   return Object.fromEntries(socialFields.map((field) => [field, cleanText(body[field])]));
+}
+
+function parseLineRecords(value, fields) {
+  return cleanText(value)
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const parts = line.split("|").map((part) => part.trim());
+      return Object.fromEntries(fields.map((field, index) => [field, parts[index] || ""]));
+    });
+}
+
+function normalizeProfile(body) {
+  return {
+    cgpa: cleanText(body.cgpa),
+    profile_picture: cleanText(body.profile_picture),
+    achievements: parseLineRecords(body.achievements, ["title", "description", "year"]),
+    events: parseLineRecords(body.events, ["event_name", "role", "location", "date"]),
+    role_models: parseLineRecords(body.role_models, ["name", "why", "domain"]),
+    clubs: parseLineRecords(body.clubs, ["club_name", "school_college", "status", "domain"]),
+  };
 }
 
 function publicUser(user) {
@@ -801,8 +824,9 @@ app.post("/api/auth/reset-password", async (req, res) => {
 });
 
 app.get("/api/talent/state", requireAuth, async (req, res) => {
-  const [users, socials, answers, quizRecords, reports] = await Promise.all([
+  const [users, profiles, socials, answers, quizRecords, reports] = await Promise.all([
     readCollection("users"),
+    readCollection("userProfiles"),
     readCollection("userSocials"),
     readCollection("talentAnswers"),
     readCollection("talentQuizRecords"),
@@ -813,11 +837,30 @@ app.get("/api/talent/state", requireAuth, async (req, res) => {
 
   return res.json({
     user: publicUser(user),
+    profile: profiles.find((item) => item.userId === req.auth.sub) || null,
     socials: socials.find((item) => item.userId === req.auth.sub) || null,
     answers: answers.filter((item) => item.userId === req.auth.sub).sort((a, b) => a.question_number - b.question_number),
     quizRecord: quizRecords.find((item) => item.userId === req.auth.sub) || null,
     report: reports.filter((item) => item.userId === req.auth.sub).at(-1) || null,
+    reports: reports.filter((item) => item.userId === req.auth.sub).sort((a, b) => new Date(b.generated_at || b.generatedAt || 0) - new Date(a.generated_at || a.generatedAt || 0)),
   });
+});
+
+app.post("/api/profile", requireAuth, async (req, res) => {
+  const values = normalizeProfile(req.body);
+  const profiles = await readCollection("userProfiles");
+  const entry = {
+    id: crypto.randomUUID(),
+    userId: req.auth.sub,
+    ...values,
+    updatedAt: new Date().toISOString(),
+  };
+  const index = profiles.findIndex((item) => item.userId === req.auth.sub);
+  if (index >= 0) profiles[index] = { ...profiles[index], ...entry, id: profiles[index].id };
+  else profiles.push(entry);
+
+  await writeCollection("userProfiles", profiles);
+  return res.json({ message: "Profile saved.", profile: index >= 0 ? profiles[index] : entry });
 });
 
 app.get("/api/socials", requireAuth, async (req, res) => {

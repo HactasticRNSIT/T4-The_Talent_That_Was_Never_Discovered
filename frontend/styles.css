@@ -432,6 +432,7 @@ form {
 }
 
 .choice-shell,
+.profile-shell,
 .quiz-shell,
 .report-shell,
 .social-shell {
@@ -579,6 +580,27 @@ form {
 .social-list {
   display: grid;
   gap: 12px;
+}
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.profile-form-grid .wide {
+  grid-column: 1 / -1;
+}
+
+.profile-form-grid textarea {
+  width: 100%;
+  min-height: 86px;
+  border: 1px solid #cbd9d2;
+  border-radius: 8px;
+  background: var(--field);
+  color: var(--ink);
+  padding: 11px 12px;
+  resize: vertical;
 }
 
 .social-row {
@@ -1155,6 +1177,279 @@ form {
   color: #d6e4de;
 }
 
+.profile-header,
+.profile-section-heading,
+.profile-social-row,
+.report-history article {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile-header {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.profile-header h2 {
+  margin-bottom: 0;
+  font-size: clamp(1.8rem, 3vw, 2.7rem);
+}
+
+.wide-meter {
+  min-width: 140px;
+}
+
+.profile-total-progress {
+  margin-bottom: 16px;
+}
+
+.profile-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.profile-tabs button {
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #edf3ef;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.profile-tabs button.active {
+  background: #10221d;
+  color: #f8fbf9;
+  border-color: #10221d;
+}
+
+.profile-panel {
+  display: none;
+}
+
+.profile-panel.active {
+  display: block;
+  animation: rise 180ms ease both;
+}
+
+.profile-section-card {
+  border: 1px solid rgba(219, 228, 223, 0.9);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.profile-section-heading {
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.profile-section-card h3,
+.profile-section-card h4 {
+  margin-bottom: 12px;
+}
+
+.personal-grid {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.profile-avatar {
+  width: 132px;
+  height: 132px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #e4f2ec;
+  color: var(--accent-strong);
+  font-size: 3rem;
+  font-weight: 900;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-facts p,
+.report-summary-card p {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  padding: 12px;
+}
+
+.profile-facts span,
+.profile-mini-card span,
+.report-summary-card span,
+.social-completion span,
+.report-history span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.empty-value {
+  color: #87938d;
+  font-style: italic;
+  font-weight: 700;
+}
+
+.profile-card-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.profile-mini-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  padding: 14px;
+}
+
+.profile-mini-card div {
+  display: grid;
+  gap: 4px;
+}
+
+.social-completion {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.profile-social-list {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-social-row {
+  display: grid;
+  grid-template-columns: 34px 130px 42px minmax(0, 1fr);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  padding: 12px;
+}
+
+.profile-social-row img {
+  width: 28px;
+  height: 28px;
+}
+
+.profile-social-row a {
+  color: var(--blue);
+  font-weight: 800;
+  word-break: break-word;
+}
+
+.connected {
+  color: var(--accent-strong);
+}
+
+.missing {
+  color: var(--muted);
+}
+
+.assessment-steps,
+.report-history {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.assessment-steps {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.assessment-steps article,
+.report-summary-card,
+.report-history article {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  padding: 14px;
+}
+
+.assessment-steps article {
+  display: grid;
+  gap: 6px;
+}
+
+.report-type-badge {
+  width: fit-content;
+  display: inline-block;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: #e4f2ec;
+  color: var(--accent-strong);
+  padding: 8px 10px;
+  font-weight: 900;
+}
+
+.mini-skill-list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.mini-skill-list div {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: 10px;
+}
+
+.mini-skill-list i {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e3ece7;
+}
+
+.mini-skill-list b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.profile-summary {
+  margin-bottom: 14px !important;
+}
+
+.report-history article {
+  justify-content: space-between;
+}
+
+.report-history article div {
+  display: grid;
+  gap: 4px;
+}
+
 @keyframes rise {
   from {
     opacity: 0;
@@ -1213,6 +1508,8 @@ form {
   }
 
   .choice-grid,
+  .profile-card-list,
+  .profile-facts,
   .report-grid.two,
   .report-grid.three,
   .talent-grid,
@@ -1228,6 +1525,18 @@ form {
   .report-warning {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .profile-header,
+  .profile-section-heading,
+  .report-history article {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .personal-grid,
+  .assessment-steps {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1247,6 +1556,9 @@ form {
   }
 
   .form-grid,
+  .profile-form-grid,
+  .profile-social-row,
+  .mini-skill-list div,
   .option-grid,
   .flow-stepper,
   .social-row,

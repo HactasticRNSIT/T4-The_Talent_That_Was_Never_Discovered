@@ -40,6 +40,15 @@ const socialPlatforms = [
 ];
 
 const emptySocials = Object.fromEntries(socialPlatforms.map((platform) => [platform.key, ""]));
+const profileSocialPlatforms = socialPlatforms.filter((platform) => !["chatgpt", "claude", "gemini"].includes(platform.key));
+const emptyProfile = {
+  cgpa: "",
+  profile_picture: "",
+  achievements: [],
+  events: [],
+  role_models: [],
+  clubs: [],
+};
 
 const questions = [
   {
@@ -221,6 +230,8 @@ const state = {
   currentIndex: 0,
   answers: {},
   report: null,
+  reports: [],
+  profile: { ...emptyProfile },
   socials: { ...emptySocials },
   socialsSaved: false,
   section1TalentTag: "",
@@ -236,6 +247,7 @@ const socialShell = document.querySelector("#socialShell");
 const choiceShell = document.querySelector("#choiceShell");
 const quizShell = document.querySelector("#quizShell");
 const reportShell = document.querySelector("#reportShell");
+const profileShell = document.querySelector("#profileShell");
 const questionMount = document.querySelector("#questionMount");
 const nextButton = document.querySelector("#nextQuestion");
 const backButton = document.querySelector("#backQuestion");
@@ -358,6 +370,39 @@ function showToast(message) {
   state.toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2600);
 }
 
+function filledOrPlaceholder(value) {
+  const text = String(value || "").trim();
+  return text ? escapeHtml(text) : `<span class="empty-value">Not filled yet</span>`;
+}
+
+function lineRecordsToText(records, fields) {
+  return (Array.isArray(records) ? records : [])
+    .map((record) => fields.map((field) => record[field] || "").join(" | ").replace(/( \| )+$/g, ""))
+    .filter(Boolean)
+    .join("\n");
+}
+
+function collectProfileDetails() {
+  return {
+    cgpa: document.querySelector("#profileCgpa")?.value.trim() || "",
+    profile_picture: document.querySelector("#profilePicture")?.value.trim() || "",
+    achievements: document.querySelector("#profileAchievements")?.value.trim() || "",
+    events: document.querySelector("#profileEvents")?.value.trim() || "",
+    role_models: document.querySelector("#profileRoleModels")?.value.trim() || "",
+    clubs: document.querySelector("#profileClubs")?.value.trim() || "",
+  };
+}
+
+function fillProfileDetailsForm() {
+  const profile = state.profile || emptyProfile;
+  document.querySelector("#profileCgpa").value = profile.cgpa || "";
+  document.querySelector("#profilePicture").value = profile.profile_picture || "";
+  document.querySelector("#profileAchievements").value = lineRecordsToText(profile.achievements, ["title", "description", "year"]);
+  document.querySelector("#profileEvents").value = lineRecordsToText(profile.events, ["event_name", "role", "location", "date"]);
+  document.querySelector("#profileRoleModels").value = lineRecordsToText(profile.role_models, ["name", "why", "domain"]);
+  document.querySelector("#profileClubs").value = lineRecordsToText(profile.clubs, ["club_name", "school_college", "status", "domain"]);
+}
+
 function logout() {
   localStorage.removeItem(tokenKey);
   localStorage.removeItem(userKey);
@@ -387,6 +432,8 @@ async function bootApp() {
     }),
   );
   state.report = data.report;
+  state.reports = data.reports || (data.report ? [data.report] : []);
+  state.profile = { ...emptyProfile, ...(data.profile || {}) };
   state.socialsSaved = Boolean(data.socials);
   state.socials = { ...emptySocials, ...(data.socials || {}) };
   state.section1TalentTag = data.quizRecord?.section1_talent_tag || "";
@@ -420,6 +467,7 @@ function renderSocials() {
   choiceShell.classList.add("hidden");
   quizShell.classList.add("hidden");
   reportShell.classList.add("hidden");
+  profileShell.classList.add("hidden");
   markFlow("social");
   document.querySelector("#socialList").innerHTML = socialPlatforms.map((platform) => `
     <article class="social-row" style="--brand:${platform.color}">
@@ -430,6 +478,7 @@ function renderSocials() {
       <span class="social-error" data-social-error="${platform.key}"></span>
     </article>
   `).join("");
+  fillProfileDetailsForm();
   updateSocialCompletion();
 }
 
@@ -442,6 +491,7 @@ function renderChoice() {
   choiceShell.classList.remove("hidden");
   quizShell.classList.add("hidden");
   reportShell.classList.add("hidden");
+  profileShell.classList.add("hidden");
   markFlow("social");
 }
 
@@ -449,6 +499,7 @@ function startQuestionnaire() {
   socialShell.classList.add("hidden");
   choiceShell.classList.add("hidden");
   reportShell.classList.add("hidden");
+  profileShell.classList.add("hidden");
   state.currentIndex = questions.findIndex((question) => !isAnswerFilled(state.answers[question.id]));
   if (state.currentIndex === -1) state.currentIndex = 0;
   renderQuestion();
@@ -517,6 +568,7 @@ function renderQuestion() {
   choiceShell.classList.add("hidden");
   quizShell.classList.remove("hidden");
   reportShell.classList.add("hidden");
+  profileShell.classList.add("hidden");
 
   const question = questions[state.currentIndex];
   const localNumber = ((question.id - 1) % 10) + 1;
@@ -667,6 +719,7 @@ async function generateReport() {
   try {
     const data = await request("/api/talent/analyse", { method: "POST", body: "{}" });
     state.report = data.report;
+    state.reports = [data.report, ...state.reports.filter((report) => report.id !== data.report.id)];
     renderReport(data.report);
   } finally {
     showGenerationOverlay(false);
@@ -689,6 +742,7 @@ async function generatePublicDataReport() {
       delay(10800),
     ]);
     state.report = data.report;
+    state.reports = [data.report, ...state.reports.filter((report) => report.id !== data.report.id)];
     renderReport(data.report);
   } finally {
     showGenerationOverlay(false);
@@ -700,6 +754,7 @@ function renderReport(report) {
   choiceShell.classList.add("hidden");
   quizShell.classList.add("hidden");
   reportShell.classList.remove("hidden");
+  profileShell.classList.add("hidden");
   markFlow("report");
   const skills = Object.entries(report.skill_strength_scores || {}).slice(0, 5);
   const visibleSkills = report.report_type === "public_data" ? shuffled(skills) : skills;
@@ -763,10 +818,130 @@ function renderReport(report) {
   document.querySelector("#takeFullAssessment")?.addEventListener("click", startQuestionnaire);
 }
 
+function profileCompletionPercent() {
+  const personalValues = [
+    state.user?.name,
+    state.user?.age,
+    state.user?.email,
+    state.user?.phone,
+    state.profile?.cgpa,
+    state.profile?.profile_picture,
+    ...(state.profile?.achievements || []),
+    ...(state.profile?.events || []),
+    ...(state.profile?.role_models || []),
+    ...(state.profile?.clubs || []),
+  ];
+  const personalScore = Math.min(1, personalValues.filter((item) => item && String(JSON.stringify(item)).replace(/[{}":,\s]/g, "").length).length / 10);
+  const socialScore = profileSocialPlatforms.filter((platform) => state.socials[platform.key]).length / profileSocialPlatforms.length;
+  const assessmentScore = (Object.keys(state.answers).length / questions.length + (state.report ? 1 : 0)) / 2;
+  return Math.round(((personalScore + socialScore + assessmentScore) / 3) * 100);
+}
+
+function renderRecordCards(records, fields, emptyText = "Not filled yet") {
+  if (!Array.isArray(records) || !records.length) return `<p class="empty-value">${emptyText}</p>`;
+  return `<div class="profile-card-list">${records.map((record) => `
+    <article class="profile-mini-card">
+      ${fields.map(([key, label]) => `<div><span>${label}</span><strong>${filledOrPlaceholder(record[key])}</strong></div>`).join("")}
+    </article>
+  `).join("")}</div>`;
+}
+
+function renderProfilePage(activeTab = "personal") {
+  socialShell.classList.add("hidden");
+  choiceShell.classList.add("hidden");
+  quizShell.classList.add("hidden");
+  reportShell.classList.add("hidden");
+  profileShell.classList.remove("hidden");
+  markFlow("social");
+
+  const completion = profileCompletionPercent();
+  const connectedCount = profileSocialPlatforms.filter((platform) => state.socials[platform.key]).length;
+  const latestReport = state.report || state.reports[0] || null;
+  const latestSkills = Object.entries(latestReport?.skill_strength_scores || {}).slice(0, 5);
+  const sectionCounts = [1, 2, 3].map((section) => questions.filter((question) => question.section === section && isAnswerFilled(state.answers[question.id])).length);
+  const tabs = [
+    ["personal", "👤 Personal Info"],
+    ["social", "🔗 Social Presence"],
+    ["talent", "🧠 Talent & Reports"],
+  ];
+
+  document.querySelector("#profileMount").innerHTML = `
+    <header class="profile-header">
+      <div>
+        <p class="eyebrow">My profile</p>
+        <h2>${escapeHtml(state.user?.name || "Student")} Profile Dashboard</h2>
+      </div>
+      <div class="completion-meter wide-meter"><strong>${completion}%</strong><span>complete</span></div>
+    </header>
+    <div class="progress-track profile-total-progress"><div class="progress-bar" style="width:${completion}%"></div></div>
+    <div class="profile-tabs" role="tablist">${tabs.map(([key, label]) => `<button class="${activeTab === key ? "active" : ""}" type="button" data-profile-tab="${key}">${label}</button>`).join("")}</div>
+    <div class="profile-panel ${activeTab === "personal" ? "active" : ""}" data-profile-panel="personal">
+      <section class="profile-section-card">
+        <div class="profile-section-heading"><h3>Personal Information</h3><button class="secondary-button compact-button" type="button" data-profile-action="edit-profile">Edit</button></div>
+        <div class="personal-grid">
+          <div class="profile-avatar">${state.profile?.profile_picture ? `<img src="${escapeHtml(state.profile.profile_picture)}" alt="Profile picture" />` : `<span>${escapeHtml((state.user?.name || "S").slice(0, 1).toUpperCase())}</span>`}</div>
+          <div class="profile-facts">
+            <p><span>Full Name</span><strong>${filledOrPlaceholder(state.user?.name)}</strong></p>
+            <p><span>Age</span><strong>${filledOrPlaceholder(state.user?.age)}</strong></p>
+            <p><span>Email</span><strong>${filledOrPlaceholder(state.user?.email)}</strong></p>
+            <p><span>Phone Number</span><strong>${filledOrPlaceholder(state.user?.phone)}</strong></p>
+            <p><span>CGPA / Percentage</span><strong>${filledOrPlaceholder(state.profile?.cgpa)}</strong></p>
+          </div>
+        </div>
+        <h4>Achievements</h4>${renderRecordCards(state.profile?.achievements, [["title", "Title"], ["description", "Description"], ["year", "Year"]])}
+        <h4>Events Participated</h4>${renderRecordCards(state.profile?.events, [["event_name", "Event Name"], ["role", "Role"], ["location", "Location"], ["date", "Date"]])}
+        <h4>Role Models</h4>${renderRecordCards(state.profile?.role_models, [["name", "Name"], ["why", "Why they inspire"], ["domain", "Domain"]])}
+        <h4>Clubs & Organizations</h4>${renderRecordCards(state.profile?.clubs, [["club_name", "Club Name"], ["school_college", "School/College"], ["status", "Status"], ["domain", "Domain"]])}
+      </section>
+    </div>
+    <div class="profile-panel ${activeTab === "social" ? "active" : ""}" data-profile-panel="social">
+      <section class="profile-section-card">
+        <div class="profile-section-heading"><h3>Social & Online Presence</h3><button class="secondary-button compact-button" type="button" data-profile-action="edit-profile">Edit Social Links</button></div>
+        <div class="social-completion"><strong>${connectedCount} of ${profileSocialPlatforms.length}</strong><span>accounts connected</span></div>
+        <div class="progress-track profile-total-progress"><div class="progress-bar" style="width:${(connectedCount / profileSocialPlatforms.length) * 100}%"></div></div>
+        <div class="profile-social-list">${profileSocialPlatforms.map((platform) => {
+          const value = state.socials[platform.key] || "";
+          const href = socialUrl(platform, value);
+          return `<article class="profile-social-row">
+            <img src="https://cdn.simpleicons.org/${platform.icon}/${platform.color.replace("#", "")}" alt="${platform.name}" />
+            <strong>${platform.name}</strong>
+            <span class="${value ? "connected" : "missing"}">${value ? "✅" : "—"}</span>
+            ${value ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(value)}</a>` : `<span class="empty-value">Not filled yet</span>`}
+          </article>`;
+        }).join("")}</div>
+      </section>
+    </div>
+    <div class="profile-panel ${activeTab === "talent" ? "active" : ""}" data-profile-panel="talent">
+      <section class="profile-section-card">
+        <div class="profile-section-heading"><h3>Talent Assessment & Reports</h3>${Object.keys(state.answers).length < questions.length ? `<button class="secondary-button compact-button" type="button" data-profile-action="continue">Continue Assessment</button>` : ""}</div>
+        <div class="assessment-steps">${sectionCounts.map((count, index) => `<article><strong>Section ${index + 1}</strong><span>${count >= 10 ? "✅ Completed" : "🔒 Not Started"}</span></article>`).join("")}</div>
+        <div class="report-summary-card">
+          <span class="report-type-badge">${latestReport ? (latestReport.report_type === "public_data" ? "Public Data Report" : "Full Assessment Report") : "No report yet"}</span>
+          <h4>Latest Talent Report Summary</h4>
+          ${latestReport ? `
+            <p><span>Learning Style</span><strong>${filledOrPlaceholder(latestReport.learning_style)}</strong></p>
+            <p><span>Top 3 Career Paths</span><strong>${(latestReport.best_career_paths || []).slice(0, 3).map(escapeHtml).join(", ") || `<span class="empty-value">Not filled yet</span>`}</strong></p>
+            <p><span>Entrepreneurial Potential Score</span><strong>${scoreOutOfTen(latestReport.entrepreneurial_potential_score)}/10</strong></p>
+            <div class="mini-skill-list">${latestSkills.map(([skill, score]) => `<div><span>${escapeHtml(skill)}</span><i><b style="width:${scorePercent(score)}%"></b></i><strong>${scoreOutOfTen(score)}/10</strong></div>`).join("")}</div>
+            <p class="profile-summary">${filledOrPlaceholder(latestReport.final_summary)}</p>
+            <button class="primary-button" type="button" data-profile-action="view-report" data-report-id="${latestReport.id}">View Full Report</button>
+          ` : `<p class="empty-value">Not filled yet</p>`}
+        </div>
+        <h4>Report History</h4>
+        <div class="report-history">${state.reports.length ? state.reports.map((report) => `<article>
+          <div><strong>${report.report_type === "public_data" ? "Public Data Report" : "Full Assessment Report"}</strong><span>${new Date(report.generated_at || report.generatedAt || Date.now()).toLocaleString()}</span></div>
+          <button class="ghost-button compact-button" type="button" data-profile-action="view-report" data-report-id="${report.id}">View</button>
+        </article>`).join("") : `<p class="empty-value">Not filled yet</p>`}</div>
+      </section>
+    </div>
+  `;
+}
+
 async function retakeAssessment() {
   await request("/api/talent/retake", { method: "POST", body: "{}" });
   state.answers = {};
   state.report = null;
+  state.reports = [];
   state.currentIndex = 0;
   renderQuestion();
 }
@@ -828,8 +1003,12 @@ document.querySelector("#socialForm").addEventListener("submit", async (event) =
   }
   setLoading(event.currentTarget, true);
   try {
-    const data = await request("/api/socials", { method: "POST", body: JSON.stringify(values) });
-    state.socials = { ...emptySocials, ...data.socials };
+    const [socialData, profileData] = await Promise.all([
+      request("/api/socials", { method: "POST", body: JSON.stringify(values) }),
+      request("/api/profile", { method: "POST", body: JSON.stringify(collectProfileDetails()) }),
+    ]);
+    state.socials = { ...emptySocials, ...socialData.socials };
+    state.profile = { ...emptyProfile, ...profileData.profile };
     state.socialsSaved = true;
     continueAfterSocials();
   } catch (error) {
@@ -840,6 +1019,32 @@ document.querySelector("#socialForm").addEventListener("submit", async (event) =
 });
 
 document.querySelector("#editSocialsButton").addEventListener("click", () => renderSocials());
+document.querySelector("#myProfileButton").addEventListener("click", () => renderProfilePage());
+document.querySelector("#profileMount").addEventListener("click", (event) => {
+  const tab = event.target.closest("[data-profile-tab]");
+  if (tab) {
+    renderProfilePage(tab.dataset.profileTab);
+    return;
+  }
+
+  const action = event.target.closest("[data-profile-action]");
+  if (!action) return;
+  if (action.dataset.profileAction === "edit-profile") {
+    renderSocials();
+    return;
+  }
+  if (action.dataset.profileAction === "continue") {
+    startQuestionnaire();
+    return;
+  }
+  if (action.dataset.profileAction === "view-report") {
+    const report = state.reports.find((item) => item.id === action.dataset.reportId) || state.report;
+    if (report) {
+      state.report = report;
+      renderReport(report);
+    }
+  }
+});
 document.querySelector("#startQuestionnaire").addEventListener("click", startQuestionnaire);
 document.querySelector("#generatePublicReport").addEventListener("click", generatePublicDataReport);
 

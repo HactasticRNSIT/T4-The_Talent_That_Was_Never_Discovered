@@ -90,7 +90,7 @@
           <span data-flow="3">Section 3</span>
           <span data-flow="report">Your Report</span>
         </nav>
-        <div class="user-menu"><strong id="navUserName">Student</strong><button class="ghost-button compact-button" id="editSocialsButton" type="button">Profile</button><button class="secondary-button" id="logoutButton" type="button">Logout</button></div>
+        <div class="user-menu"><strong id="navUserName">Student</strong><button class="ghost-button compact-button" id="myProfileButton" type="button">My Profile</button><button class="ghost-button compact-button" id="editSocialsButton" type="button">Edit Profile</button><button class="secondary-button" id="logoutButton" type="button">Logout</button></div>
       </header>
 
       <section class="social-shell hidden" id="socialShell">
@@ -108,6 +108,14 @@
           </div>
           <div class="progress-track"><div class="progress-bar" id="socialProgress"></div></div>
           <p class="social-note">Fill whichever you have. The more you share, the better we understand you.</p>
+          <div class="profile-form-grid">
+            <div class="field"><label for="profileCgpa">CGPA / Percentage</label><input id="profileCgpa" name="cgpa" type="text" placeholder="Example: 8.7 CGPA or 86%" /></div>
+            <div class="field"><label for="profilePicture">Profile Picture URL</label><input id="profilePicture" name="profile_picture" type="url" placeholder="https://..." /></div>
+            <div class="field wide"><label for="profileAchievements">Achievements</label><textarea id="profileAchievements" name="achievements" rows="3" placeholder="Title | Description | Year"></textarea></div>
+            <div class="field wide"><label for="profileEvents">Events Participated</label><textarea id="profileEvents" name="events" rows="3" placeholder="Event Name | Role | Location | Date"></textarea></div>
+            <div class="field wide"><label for="profileRoleModels">Role Models</label><textarea id="profileRoleModels" name="role_models" rows="3" placeholder="Name | Why they inspire | Domain"></textarea></div>
+            <div class="field wide"><label for="profileClubs">Clubs & Organizations</label><textarea id="profileClubs" name="clubs" rows="3" placeholder="Club Name | School/College | Status | Domain"></textarea></div>
+          </div>
           <div class="social-list" id="socialList"></div>
           <div class="form-actions">
             <p class="autosave" id="socialMessage" aria-live="polite"></p>
@@ -157,6 +165,10 @@
 
       <section class="report-shell hidden" id="reportShell">
         <div id="reportMount"></div>
+      </section>
+
+      <section class="profile-shell hidden" id="profileShell">
+        <div id="profileMount"></div>
       </section>
     </main>
 
