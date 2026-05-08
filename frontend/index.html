@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HiddenSpark | Student Potential Discovery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar" aria-label="Assessment summary">
+        <div class="brand">
+          <span class="brand-mark">HS</span>
+          <div>
+            <p class="eyebrow">Cosmic Coders</p>
+            <h1>HiddenSpark</h1>
+          </div>
+        </div>
+
+        <section class="summary-panel">
+          <p class="panel-label">Student profile</p>
+          <h2 id="studentNamePreview">New assessment</h2>
+          <p id="studentMetaPreview">Build a fuller view of potential from multiple data sources.</p>
+        </section>
+
+        <nav class="step-list" aria-label="Questionnaire steps" id="stepList"></nav>
+
+        <section class="signal-card">
+          <p class="panel-label">Potential signals</p>
+          <div class="signal-row">
+            <span>Curiosity</span>
+            <strong id="curiositySignal">0</strong>
+          </div>
+          <div class="signal-row">
+            <span>Persistence</span>
+            <strong id="persistenceSignal">0</strong>
+          </div>
+          <div class="signal-row">
+            <span>Creativity</span>
+            <strong id="creativitySignal">0</strong>
+          </div>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="stepEyebrow">Step 1 of 5</p>
+            <h2 id="stepTitle">Student Basics</h2>
+          </div>
+          <div class="progress-shell" aria-label="Questionnaire progress">
+            <span id="progressText">0%</span>
+            <div class="progress-track">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
+          </div>
+        </header>
+
+        <form class="question-card" id="questionnaireForm">
+          <div id="stepContent"></div>
+
+          <div class="form-actions">
+            <button type="button" class="ghost-button" id="backButton">Back</button>
+            <button type="button" class="secondary-button" id="saveButton">Save Draft</button>
+            <button type="submit" class="primary-button" id="nextButton">Continue</button>
+          </div>
+        </form>
+
+        <section class="result-panel hidden" id="resultPanel" aria-live="polite">
+          <div class="result-header">
+            <div>
+              <p class="eyebrow">AI-style analysis</p>
+              <h2>Potential Profile</h2>
+            </div>
+            <button class="ghost-button" id="restartButton" type="button">Start Over</button>
+          </div>
+          <div class="score-grid" id="scoreGrid"></div>
+          <div class="insight-grid">
+            <article>
+              <p class="panel-label">Likely hidden strengths</p>
+              <ul id="strengthList"></ul>
+            </article>
+            <article>
+              <p class="panel-label">Recommended next steps</p>
+              <ul id="recommendationList"></ul>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
