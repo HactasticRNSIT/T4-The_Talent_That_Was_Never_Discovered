@@ -587,7 +587,7 @@ form {
 }
 
 .question-card-inner {
-  animation: rise 180ms ease both;
+  animation: slide-question 220ms ease both;
 }
 
 .question-number {
@@ -623,6 +623,12 @@ form {
   background: #fbfcfb;
   padding: 12px;
   font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .option-card input {
@@ -636,6 +642,58 @@ form {
   border-color: var(--accent);
   background: #eaf6f1;
   box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.option-card:hover {
+  transform: translateY(-1px);
+  border-color: #aac7bc;
+}
+
+.section-one-options {
+  grid-template-columns: 1fr;
+}
+
+.letter-option-card {
+  min-height: 66px;
+  position: relative;
+  padding: 14px 16px;
+}
+
+.letter-option-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.option-letter {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  background: #edf3ef;
+  color: var(--accent-strong);
+  font-weight: 900;
+}
+
+.letter-option-card:has(input:checked) {
+  border-color: #095d4f;
+  background: #dff4ec;
+  box-shadow:
+    inset 0 0 0 1px #095d4f,
+    0 12px 24px rgba(15, 123, 104, 0.12);
+}
+
+.letter-option-card:has(input:checked) .option-letter {
+  background: var(--accent);
+  color: white;
+}
+
+.letter-option-card:has(input:focus-visible) {
+  box-shadow:
+    inset 0 0 0 1px var(--accent),
+    0 0 0 3px rgba(15, 123, 104, 0.14);
 }
 
 .slider-wrap {
@@ -952,6 +1010,17 @@ form {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slide-question {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 

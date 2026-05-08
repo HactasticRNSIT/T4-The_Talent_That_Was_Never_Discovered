@@ -27,16 +27,156 @@ const socialPlatforms = [
 const emptySocials = Object.fromEntries(socialPlatforms.map((platform) => [platform.key, ""]));
 
 const questions = [
-  { id: 1, section: 1, type: "textarea", text: "What activities make you lose track of time completely, even when no one asks you to do them?" },
-  { id: 2, section: 1, type: "checkbox", text: "When working in a group, what role do you naturally take most often?", options: ["Leader", "Planner/Organizer", "Problem Solver", "Creative Idea Generator", "Mediator", "Technical Executor", "Presenter/Communicator"] },
-  { id: 3, section: 1, type: "textarea", text: "Describe a situation where you solved a problem in a way different from others. What did you do?" },
-  { id: 4, section: 1, type: "text", text: "Which type of tasks do people usually come to you for help with?" },
-  { id: 5, section: 1, type: "textarea", text: "If marks and money did not matter, what would you spend most of your time learning or building?" },
-  { id: 6, section: 1, type: "checkbox", text: "Which of these activities energize you the most? Choose all that apply.", options: ["Designing or drawing", "Coding or building tech", "Explaining concepts to others", "Performing/speaking", "Writing stories or ideas", "Solving puzzles or logic problems", "Organizing events/projects", "Helping people emotionally", "Sports/physical activities", "Researching deeply into topics"] },
-  { id: 7, section: 1, type: "textarea", text: "Tell us about something you taught yourself without formal instruction. How did you learn it?" },
-  { id: 8, section: 1, type: "checkbox", text: "What kind of challenges excite you the most?", options: ["Competing against others", "Creating something new", "Solving difficult problems", "Helping people", "Leading teams", "Exploring unknown ideas", "Improving systems/processes"] },
-  { id: 9, section: 1, type: "textarea", text: "When you fail at something important, what do you usually do next?" },
-  { id: 10, section: 1, type: "textarea", text: "Imagine you are given unlimited resources for one year to build, create, solve, or improve something. What would you choose and why?" },
+  {
+    id: 1,
+    section: 1,
+    type: "radio",
+    text: "During a group activity, what role do you naturally take?",
+    options: [
+      { letter: "A", text: "I organize tasks and guide others" },
+      { letter: "B", text: "I come up with creative ideas" },
+      { letter: "C", text: "I quietly complete important work" },
+      { letter: "D", text: "I motivate and encourage the team" },
+      { letter: "E", text: "I solve technical or logical problems" },
+      { letter: "F", text: "I observe and help wherever needed" },
+      { letter: "G", text: "I present the final work confidently" },
+    ],
+  },
+  {
+    id: 2,
+    section: 1,
+    type: "radio",
+    text: "Which activity sounds most enjoyable to you during free time?",
+    options: [
+      { letter: "A", text: "Solving puzzles or strategy games" },
+      { letter: "B", text: "Drawing, designing, or creating things" },
+      { letter: "C", text: "Playing sports or physical activities" },
+      { letter: "D", text: "Reading or learning new facts" },
+      { letter: "E", text: "Helping friends with problems" },
+      { letter: "F", text: "Making videos, music, or content" },
+      { letter: "G", text: "Repairing or building something" },
+    ],
+  },
+  {
+    id: 3,
+    section: 1,
+    type: "radio",
+    text: "If your school is organizing an event, what would you most likely volunteer for?",
+    options: [
+      { letter: "A", text: "Managing the entire event" },
+      { letter: "B", text: "Designing posters or decorations" },
+      { letter: "C", text: "Hosting or speaking on stage" },
+      { letter: "D", text: "Handling accounts or schedules" },
+      { letter: "E", text: "Taking photos/videos" },
+      { letter: "F", text: "Coordinating with people" },
+      { letter: "G", text: "Setting up equipment or technology" },
+    ],
+  },
+  {
+    id: 4,
+    section: 1,
+    type: "radio",
+    text: "When you face a difficult problem, what do you usually do first?",
+    options: [
+      { letter: "A", text: "Break it into smaller steps" },
+      { letter: "B", text: "Ask others and discuss ideas" },
+      { letter: "C", text: "Try different creative methods" },
+      { letter: "D", text: "Stay calm and keep trying alone" },
+      { letter: "E", text: "Search for facts or information" },
+      { letter: "F", text: "Use practical experience" },
+      { letter: "G", text: "Avoid it until necessary" },
+    ],
+  },
+  {
+    id: 5,
+    section: 1,
+    type: "radio",
+    text: "Which compliment do you receive most often?",
+    options: [
+      { letter: "A", text: "You explain things very well." },
+      { letter: "B", text: "You are very creative." },
+      { letter: "C", text: "You are responsible." },
+      { letter: "D", text: "You are confident." },
+      { letter: "E", text: "You are smart with technology." },
+      { letter: "F", text: "You are very supportive." },
+      { letter: "G", text: "You learn things quickly." },
+    ],
+  },
+  {
+    id: 6,
+    section: 1,
+    type: "radio",
+    text: "What type of school task do you complete fastest?",
+    options: [
+      { letter: "A", text: "Writing or speaking assignments" },
+      { letter: "B", text: "Mathematical or logical problems" },
+      { letter: "C", text: "Art, craft, or design work" },
+      { letter: "D", text: "Team projects" },
+      { letter: "E", text: "Research-based assignments" },
+      { letter: "F", text: "Practical/lab activities" },
+      { letter: "G", text: "Sports or performance tasks" },
+    ],
+  },
+  {
+    id: 7,
+    section: 1,
+    type: "radio",
+    text: "In a new environment, what do you notice first?",
+    options: [
+      { letter: "A", text: "People and their behavior" },
+      { letter: "B", text: "Rules and organization" },
+      { letter: "C", text: "Creative details and design" },
+      { letter: "D", text: "Opportunities to participate" },
+      { letter: "E", text: "Problems that can be improved" },
+      { letter: "F", text: "Technology or tools available" },
+      { letter: "G", text: "Overall atmosphere and energy" },
+    ],
+  },
+  {
+    id: 8,
+    section: 1,
+    type: "radio",
+    text: "If your friend needs help, what are you most likely to do?",
+    options: [
+      { letter: "A", text: "Give emotional support" },
+      { letter: "B", text: "Suggest practical solutions" },
+      { letter: "C", text: "Teach them how to solve it" },
+      { letter: "D", text: "Take leadership and handle it" },
+      { letter: "E", text: "Cheer them up creatively" },
+      { letter: "F", text: "Find information or resources" },
+      { letter: "G", text: "Stay with them quietly" },
+    ],
+  },
+  {
+    id: 9,
+    section: 1,
+    type: "radio",
+    text: "Which situation makes you feel most confident?",
+    options: [
+      { letter: "A", text: "Speaking in front of people" },
+      { letter: "B", text: "Solving a difficult challenge" },
+      { letter: "C", text: "Creating something unique" },
+      { letter: "D", text: "Leading a team" },
+      { letter: "E", text: "Helping others succeed" },
+      { letter: "F", text: "Competing in activities or sports" },
+      { letter: "G", text: "Working with machines/computers" },
+    ],
+  },
+  {
+    id: 10,
+    section: 1,
+    type: "radio",
+    text: "If you had one full day without restrictions, what would you choose to do?",
+    options: [
+      { letter: "A", text: "Start a small project or business idea" },
+      { letter: "B", text: "Create art, music, or content" },
+      { letter: "C", text: "Play games, sports, or outdoor activities" },
+      { letter: "D", text: "Learn a new skill online" },
+      { letter: "E", text: "Spend time helping or guiding others" },
+      { letter: "F", text: "Experiment with gadgets or technology" },
+      { letter: "G", text: "Plan and organize future goals" },
+    ],
+  },
   { id: 11, section: 2, type: "slider", text: "How confident do you feel while using this skill/talent compared to others your age?", min: 1, max: 10 },
   { id: 12, section: 2, type: "radio", text: "How often do you voluntarily engage in activities related to this skill without being forced or graded?", options: ["Rarely", "Sometimes", "Often", "Almost Daily"] },
   { id: 13, section: 2, type: "radio", text: "How quickly do you improve when practicing this skill?", options: ["Very Slowly", "Slowly", "Average", "Fast", "Extremely Fast"] },
@@ -68,6 +208,7 @@ const state = {
   report: null,
   socials: { ...emptySocials },
   socialsSaved: false,
+  section1TalentTag: "",
   saveTimer: null,
   loadingTimer: null,
 };
@@ -147,6 +288,21 @@ function escapeHtml(value) {
   return String(value || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
 }
 
+function optionValue(option) {
+  return typeof option === "object" ? option.letter : option;
+}
+
+function optionText(option) {
+  return typeof option === "object" ? option.text : option;
+}
+
+function normalizeStoredAnswer(question, answer) {
+  if (question?.section === 1 && question.type === "radio") {
+    return /^[A-G]$/.test(String(answer || "")) ? answer : "";
+  }
+  return answer;
+}
+
 function scoreOutOfTen(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) return 0;
@@ -179,10 +335,16 @@ async function bootApp() {
 
   const data = await request("/api/talent/state");
   state.user = data.user;
-  state.answers = Object.fromEntries(data.answers.map((item) => [item.question_number, item.answer]));
+  state.answers = Object.fromEntries(
+    data.answers.map((item) => {
+      const question = questions.find((candidate) => candidate.id === item.question_number);
+      return [item.question_number, normalizeStoredAnswer(question, item.answer)];
+    }),
+  );
   state.report = data.report;
   state.socialsSaved = Boolean(data.socials);
   state.socials = { ...emptySocials, ...(data.socials || {}) };
+  state.section1TalentTag = data.quizRecord?.section1_talent_tag || "";
   localStorage.setItem(userKey, JSON.stringify(data.user));
   document.querySelector("#navUserName").textContent = data.user.name;
 
@@ -297,9 +459,9 @@ function renderQuestion() {
 
   const question = questions[state.currentIndex];
   const localNumber = ((question.id - 1) % 10) + 1;
-  document.querySelector("#sectionMeta").textContent = `Section ${question.section} of 3 - Question ${localNumber} of 10`;
+  document.querySelector("#sectionMeta").textContent = `Section ${question.section} of 3 \u2014 Question ${localNumber} of 10`;
   document.querySelector("#sectionTitle").textContent = sectionTitle(question.section);
-  document.querySelector("#quizProgress").style.width = `${((state.currentIndex + 1) / questions.length) * 100}%`;
+  document.querySelector("#quizProgress").style.width = `${(localNumber / 10) * 100}%`;
   markFlow(question.section);
   backButton.disabled = state.currentIndex === 0;
   nextButton.textContent = getNextButtonLabel(question);
@@ -324,7 +486,16 @@ function renderInput(question) {
     return `<div class="option-grid">${question.options.map((option) => `<label class="option-card"><input type="checkbox" name="answer" value="${escapeHtml(option)}" ${values.includes(option) ? "checked" : ""} /><span>${option}</span></label>`).join("")}</div>`;
   }
   if (question.type === "radio") {
-    return `<div class="option-grid">${question.options.map((option) => `<label class="option-card"><input type="radio" name="answer" value="${escapeHtml(option)}" ${value === option ? "checked" : ""} /><span>${option}</span></label>`).join("")}</div>`;
+    const isSectionOne = question.section === 1;
+    return `<div class="option-grid ${isSectionOne ? "section-one-options" : ""}">${question.options.map((option) => {
+      const valueText = optionValue(option);
+      const labelText = optionText(option);
+      return `<label class="option-card ${isSectionOne ? "letter-option-card" : ""}">
+        <input type="radio" name="answer" value="${escapeHtml(valueText)}" ${value === valueText ? "checked" : ""} />
+        ${isSectionOne ? `<span class="option-letter">${escapeHtml(valueText)}</span>` : ""}
+        <span>${escapeHtml(labelText)}</span>
+      </label>`;
+    }).join("")}</div>`;
   }
   if (question.type === "slider") {
     const sliderValue = value || 5;
@@ -366,10 +537,11 @@ async function saveCurrentAnswer(showSaved = true) {
   if (!isAnswerFilled(answer)) return;
   state.answers[question.id] = answer;
   document.querySelector("#autosaveStatus").textContent = "Saving...";
-  await request("/api/talent/answer", {
+  const data = await request("/api/talent/answer", {
     method: "POST",
     body: JSON.stringify({ section: question.section, question_number: question.id, answer }),
   });
+  state.section1TalentTag = data.quizRecord?.section1_talent_tag || state.section1TalentTag;
   document.querySelector("#autosaveStatus").textContent = showSaved ? "Saved. You can continue." : "Autosaved.";
 }
 

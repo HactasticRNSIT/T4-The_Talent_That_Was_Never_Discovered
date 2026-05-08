@@ -21,6 +21,7 @@ const files = {
   users: path.join(DATA_DIR, "users.json"),
   userSocials: path.join(DATA_DIR, "user-socials.json"),
   talentAnswers: path.join(DATA_DIR, "talent-answers.json"),
+  talentQuizRecords: path.join(DATA_DIR, "talent-quiz-records.json"),
   talentReports: path.join(DATA_DIR, "talent-reports.json"),
 };
 
@@ -38,6 +39,110 @@ const socialFields = [
   "claude",
   "gemini",
 ];
+
+const section1OptionLetters = ["A", "B", "C", "D", "E", "F", "G"];
+const section1TalentTags = {
+  A: "Leadership & Communication Skills",
+  B: "Creativity & Innovation",
+  C: "Discipline, Focus, or Physical Skills",
+  D: "Confidence & Management Ability",
+  E: "Analytical & Problem-Solving Skills",
+  F: "Technical, Social, or Supportive Nature",
+  G: "Practical Intelligence & Adaptability",
+};
+
+const section1QuestionOptions = {
+  1: {
+    A: "I organize tasks and guide others",
+    B: "I come up with creative ideas",
+    C: "I quietly complete important work",
+    D: "I motivate and encourage the team",
+    E: "I solve technical or logical problems",
+    F: "I observe and help wherever needed",
+    G: "I present the final work confidently",
+  },
+  2: {
+    A: "Solving puzzles or strategy games",
+    B: "Drawing, designing, or creating things",
+    C: "Playing sports or physical activities",
+    D: "Reading or learning new facts",
+    E: "Helping friends with problems",
+    F: "Making videos, music, or content",
+    G: "Repairing or building something",
+  },
+  3: {
+    A: "Managing the entire event",
+    B: "Designing posters or decorations",
+    C: "Hosting or speaking on stage",
+    D: "Handling accounts or schedules",
+    E: "Taking photos/videos",
+    F: "Coordinating with people",
+    G: "Setting up equipment or technology",
+  },
+  4: {
+    A: "Break it into smaller steps",
+    B: "Ask others and discuss ideas",
+    C: "Try different creative methods",
+    D: "Stay calm and keep trying alone",
+    E: "Search for facts or information",
+    F: "Use practical experience",
+    G: "Avoid it until necessary",
+  },
+  5: {
+    A: "You explain things very well.",
+    B: "You are very creative.",
+    C: "You are responsible.",
+    D: "You are confident.",
+    E: "You are smart with technology.",
+    F: "You are very supportive.",
+    G: "You learn things quickly.",
+  },
+  6: {
+    A: "Writing or speaking assignments",
+    B: "Mathematical or logical problems",
+    C: "Art, craft, or design work",
+    D: "Team projects",
+    E: "Research-based assignments",
+    F: "Practical/lab activities",
+    G: "Sports or performance tasks",
+  },
+  7: {
+    A: "People and their behavior",
+    B: "Rules and organization",
+    C: "Creative details and design",
+    D: "Opportunities to participate",
+    E: "Problems that can be improved",
+    F: "Technology or tools available",
+    G: "Overall atmosphere and energy",
+  },
+  8: {
+    A: "Give emotional support",
+    B: "Suggest practical solutions",
+    C: "Teach them how to solve it",
+    D: "Take leadership and handle it",
+    E: "Cheer them up creatively",
+    F: "Find information or resources",
+    G: "Stay with them quietly",
+  },
+  9: {
+    A: "Speaking in front of people",
+    B: "Solving a difficult challenge",
+    C: "Creating something unique",
+    D: "Leading a team",
+    E: "Helping others succeed",
+    F: "Competing in activities or sports",
+    G: "Working with machines/computers",
+  },
+  10: {
+    A: "Start a small project or business idea",
+    B: "Create art, music, or content",
+    C: "Play games, sports, or outdoor activities",
+    D: "Learn a new skill online",
+    E: "Spend time helping or guiding others",
+    F: "Experiment with gadgets or technology",
+    G: "Plan and organize future goals",
+  },
+};
 
 app.use(express.json({ limit: "1mb" }));
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
@@ -171,10 +276,81 @@ function getAnswerMap(answers) {
   return Object.fromEntries(answers.map((item) => [Number(item.question_number), item.answer]));
 }
 
-function localTalentReport(answers) {
+function normalizeSection1Option(value) {
+  const option = cleanText(value).toUpperCase();
+  return section1OptionLetters.includes(option) ? option : "";
+}
+
+function section1AnswerRows(answers) {
+  return answers
+    .filter((item) => Number(item.section) === 1 && Number(item.question_number) >= 1 && Number(item.question_number) <= 10)
+    .sort((a, b) => a.question_number - b.question_number)
+    .map((item) => ({
+      question_number: Number(item.question_number),
+      selected_option: normalizeSection1Option(item.selected_option || item.answer),
+    }))
+    .filter((item) => item.selected_option);
+}
+
+function dominantSection1Letter(section1Answers) {
+  if (section1Answers.length < 10) return "";
+  const counts = Object.fromEntries(section1OptionLetters.map((letter) => [letter, 0]));
+  section1Answers.forEach((item) => {
+    counts[item.selected_option] += 1;
+  });
+  return section1OptionLetters.reduce((best, letter) => (counts[letter] > counts[best] ? letter : best), "A");
+}
+
+function section1TalentTag(section1Answers) {
+  const letter = dominantSection1Letter(section1Answers);
+  return letter ? section1TalentTags[letter] : "";
+}
+
+async function upsertQuizRecord(userId, answers) {
+  const section1_answers = section1AnswerRows(answers.filter((item) => item.userId === userId));
+  const dominant_letter = dominantSection1Letter(section1_answers);
+  const section1_talent_tag = dominant_letter ? section1TalentTags[dominant_letter] : "";
+  const quizRecords = await readCollection("talentQuizRecords");
+  const entry = {
+    id: crypto.randomUUID(),
+    userId,
+    section1_answers,
+    section1_dominant_letter: dominant_letter,
+    section1_talent_tag,
+    updatedAt: new Date().toISOString(),
+  };
+  const index = quizRecords.findIndex((item) => item.userId === userId);
+  if (index >= 0) quizRecords[index] = { ...quizRecords[index], ...entry, id: quizRecords[index].id };
+  else quizRecords.push(entry);
+  await writeCollection("talentQuizRecords", quizRecords);
+  return index >= 0 ? quizRecords[index] : entry;
+}
+
+function section1AnswerToText(item) {
+  const selected = normalizeSection1Option(item.selected_option || item.answer);
+  if (!selected || !section1QuestionOptions[item.question_number]) return answerToText(item.answer);
+  return `${selected}. ${section1QuestionOptions[item.question_number][selected]}`;
+}
+
+function answerForAnalysis(item) {
+  if (Number(item.section) === 1) {
+    return {
+      question_number: item.question_number,
+      selected_option: normalizeSection1Option(item.selected_option || item.answer),
+      selected_text: section1AnswerToText(item),
+    };
+  }
+  return {
+    question_number: item.question_number,
+    answer: item.answer,
+  };
+}
+
+function localTalentReport(answers, quizRecord = null) {
   const byQuestion = getAnswerMap(answers);
-  const allText = answers.map((item) => answerToText(item.answer)).join(" ").toLowerCase();
+  const allText = answers.map((item) => (Number(item.section) === 1 ? section1AnswerToText(item) : answerToText(item.answer))).join(" ").toLowerCase();
   const selected = (number) => answerToText(byQuestion[number] || "").toLowerCase();
+  const talentTag = quizRecord?.section1_talent_tag || section1TalentTag(section1AnswerRows(answers));
 
   const rawSkillScores = {
     "Creative Ideation": 5.8 + scoreFromWords(allText, ["creative", "create", "design", "drawing", "story", "idea", "art", "imagine", "new"]),
@@ -188,6 +364,19 @@ function localTalentReport(answers) {
     Entrepreneurship: 4.9 + scoreFromWords(allText, ["business", "company", "startup", "money", "market", "leadership", "impact"]),
     "Physical Drive": 4.8 + scoreFromWords(allText, ["sports", "physical", "outdoors", "fitness", "competing"]),
   };
+
+  const talentTagBoosts = {
+    "Leadership & Communication Skills": ["Leadership", "Communication"],
+    "Creativity & Innovation": ["Creative Ideation"],
+    "Discipline, Focus, or Physical Skills": ["Organization", "Physical Drive"],
+    "Confidence & Management Ability": ["Leadership", "Organization"],
+    "Analytical & Problem-Solving Skills": ["Problem Solving", "Research"],
+    "Technical, Social, or Supportive Nature": ["Technical Building", "Empathy"],
+    "Practical Intelligence & Adaptability": ["Technical Building", "Problem Solving"],
+  };
+  (talentTagBoosts[talentTag] || []).forEach((skill) => {
+    rawSkillScores[skill] += 1.25;
+  });
 
   const skill_strength_scores = Object.fromEntries(
     Object.entries(rawSkillScores)
@@ -221,6 +410,7 @@ function localTalentReport(answers) {
   const best_career_paths = top_5_skills.slice(0, 3).map((skill) => careerMap[skill]);
 
   return {
+    section1_talent_tag: talentTag,
     hidden_talents,
     top_5_skills,
     skill_strength_scores,
@@ -272,8 +462,11 @@ function localTalentReport(answers) {
   };
 }
 
-async function generateTalentReport(answers) {
-  if (!process.env.OPENAI_API_KEY) return localTalentReport(answers);
+async function generateTalentReport(answers, quizRecord = null) {
+  if (!process.env.OPENAI_API_KEY) return localTalentReport(answers, quizRecord);
+
+  const talentTag = quizRecord?.section1_talent_tag || section1TalentTag(section1AnswerRows(answers));
+  const analysisAnswers = answers.map(answerForAnalysis);
 
   const prompt = `You are an AI-based Student Talent & Career Intelligence System.
 Analyze the following 30 answers from a student.
@@ -281,9 +474,11 @@ Analyze not just the selected options but also:
 - Writing style, confidence, emotional tone
 - Creativity, curiosity, leadership indicators
 - Problem-solving patterns, motivation signals
+- Section 1 dominant talent tag
 
 Return ONLY a JSON object with these fields:
 {
+  "section1_talent_tag": "",
   "hidden_talents": [],
   "top_5_skills": [],
   "skill_strength_scores": { "skill": "score_out_of_10" },
@@ -302,8 +497,11 @@ Return ONLY a JSON object with these fields:
   "final_summary": ""
 }
 
+Section 1 dominant talent tag:
+${talentTag || "Not available"}
+
 Answers:
-${JSON.stringify(answers, null, 2)}`;
+${JSON.stringify(analysisAnswers, null, 2)}`;
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -325,7 +523,7 @@ ${JSON.stringify(answers, null, 2)}`;
     return { ...JSON.parse(data.choices[0].message.content), source: "openai" };
   } catch (error) {
     console.error("Talent AI fallback:", error.message);
-    return localTalentReport(answers);
+    return localTalentReport(answers, quizRecord);
   }
 }
 
@@ -420,10 +618,11 @@ app.post("/api/auth/reset-password", async (req, res) => {
 });
 
 app.get("/api/talent/state", requireAuth, async (req, res) => {
-  const [users, socials, answers, reports] = await Promise.all([
+  const [users, socials, answers, quizRecords, reports] = await Promise.all([
     readCollection("users"),
     readCollection("userSocials"),
     readCollection("talentAnswers"),
+    readCollection("talentQuizRecords"),
     readCollection("talentReports"),
   ]);
   const user = users.find((item) => item.id === req.auth.sub);
@@ -433,6 +632,7 @@ app.get("/api/talent/state", requireAuth, async (req, res) => {
     user: publicUser(user),
     socials: socials.find((item) => item.userId === req.auth.sub) || null,
     answers: answers.filter((item) => item.userId === req.auth.sub).sort((a, b) => a.question_number - b.question_number),
+    quizRecord: quizRecords.find((item) => item.userId === req.auth.sub) || null,
     report: reports.filter((item) => item.userId === req.auth.sub).at(-1) || null,
   });
 });
@@ -470,11 +670,18 @@ app.post("/api/socials", requireAuth, async (req, res) => {
 app.post("/api/talent/answer", requireAuth, async (req, res) => {
   const section = Number(req.body.section);
   const questionNumber = Number(req.body.question_number);
-  if (![1, 2, 3].includes(section) || questionNumber < 1 || questionNumber > 30) {
+  const expectedSection = Math.ceil(questionNumber / 10);
+  if (![1, 2, 3].includes(section) || questionNumber < 1 || questionNumber > 30 || section !== expectedSection) {
     return res.status(400).json({ message: "Invalid section or question number." });
   }
 
-  const answer = Array.isArray(req.body.answer) ? req.body.answer.map(cleanText).filter(Boolean) : req.body.answer;
+  let answer = Array.isArray(req.body.answer) ? req.body.answer.map(cleanText).filter(Boolean) : req.body.answer;
+  let selectedOption = null;
+  if (section === 1) {
+    selectedOption = normalizeSection1Option(answer);
+    if (!selectedOption) return res.status(400).json({ message: "Choose one valid option from A to G." });
+    answer = selectedOption;
+  }
   const answers = await readCollection("talentAnswers");
   const entry = {
     id: crypto.randomUUID(),
@@ -482,6 +689,7 @@ app.post("/api/talent/answer", requireAuth, async (req, res) => {
     section,
     question_number: questionNumber,
     answer,
+    ...(selectedOption ? { selected_option: selectedOption } : {}),
     savedAt: new Date().toISOString(),
   };
   const index = answers.findIndex((item) => item.userId === req.auth.sub && item.question_number === questionNumber);
@@ -489,7 +697,8 @@ app.post("/api/talent/answer", requireAuth, async (req, res) => {
   else answers.push(entry);
 
   await writeCollection("talentAnswers", answers);
-  return res.json({ message: "Answer saved.", answer: index >= 0 ? answers[index] : entry });
+  const quizRecord = section === 1 ? await upsertQuizRecord(req.auth.sub, answers) : null;
+  return res.json({ message: "Answer saved.", answer: index >= 0 ? answers[index] : entry, quizRecord });
 });
 
 app.post("/api/talent/analyse", requireAuth, async (req, res) => {
@@ -499,11 +708,15 @@ app.post("/api/talent/analyse", requireAuth, async (req, res) => {
   const answeredCount = new Set(answers.map((item) => item.question_number)).size;
   if (answeredCount < 30) return res.status(400).json({ message: `Please answer all 30 questions first. You have answered ${answeredCount}.` });
 
-  const generated = await generateTalentReport(answers);
+  const quizRecords = await readCollection("talentQuizRecords");
+  let quizRecord = quizRecords.find((item) => item.userId === req.auth.sub);
+  if (!quizRecord?.section1_talent_tag) quizRecord = await upsertQuizRecord(req.auth.sub, answers);
+  const generated = await generateTalentReport(answers, quizRecord);
   const report = {
     id: crypto.randomUUID(),
     userId: req.auth.sub,
     ...generated,
+    section1_talent_tag: quizRecord.section1_talent_tag,
     generatedAt: new Date().toISOString(),
   };
   const reports = await readCollection("talentReports");
@@ -513,8 +726,9 @@ app.post("/api/talent/analyse", requireAuth, async (req, res) => {
 });
 
 app.post("/api/talent/retake", requireAuth, async (req, res) => {
-  const [answers, reports] = await Promise.all([readCollection("talentAnswers"), readCollection("talentReports")]);
+  const [answers, quizRecords, reports] = await Promise.all([readCollection("talentAnswers"), readCollection("talentQuizRecords"), readCollection("talentReports")]);
   await writeCollection("talentAnswers", answers.filter((item) => item.userId !== req.auth.sub));
+  await writeCollection("talentQuizRecords", quizRecords.filter((item) => item.userId !== req.auth.sub));
   await writeCollection("talentReports", reports.filter((item) => item.userId !== req.auth.sub));
   return res.json({ message: "Assessment cleared." });
 });
