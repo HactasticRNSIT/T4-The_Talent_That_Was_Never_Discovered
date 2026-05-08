@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HiddenSpark | Talent Intelligence</title>
+    <title>HiddenSpark | Hidden Talent Assessment</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -11,7 +11,7 @@
   </head>
   <body>
     <main class="auth-shell" id="authShell">
-      <section class="brand-panel" aria-label="HiddenSpark overview">
+      <section class="brand-panel">
         <div class="brand">
           <span class="brand-mark">HS</span>
           <div>
@@ -20,14 +20,14 @@
           </div>
         </div>
         <div class="brand-copy">
-          <p class="eyebrow">Talent intelligence</p>
-          <h2>Map interests, strengths, and future-fit domains from real student evidence.</h2>
-          <p>Secure login unlocks a profile flow, AI-style analysis, domain confirmation, and a curated domain quiz.</p>
+          <p class="eyebrow">Hidden talent intelligence</p>
+          <h2>Understand your strengths, personality, and future-fit career paths.</h2>
+          <p>Answer 30 thoughtful questions across talent discovery, skill strength, and career interests to generate your AI-powered report.</p>
         </div>
         <dl class="security-list">
-          <div><dt>Profile</dt><dd>Drafts saved by user</dd></div>
-          <div><dt>Analysis</dt><dd>Domain confidence chart</dd></div>
-          <div><dt>Quiz</dt><dd>10 curated questions</dd></div>
+          <div><dt>30</dt><dd>Talent signals</dd></div>
+          <div><dt>3</dt><dd>Guided sections</dd></div>
+          <div><dt>AI</dt><dd>Report dashboard</dd></div>
         </dl>
       </section>
 
@@ -38,7 +38,7 @@
         </div>
 
         <section class="auth-view active" id="loginView">
-          <div class="view-heading"><p class="eyebrow">Welcome back</p><h2>Login to continue</h2></div>
+          <div class="view-heading"><p class="eyebrow">Welcome back</p><h2>Login to begin</h2></div>
           <form id="loginForm" novalidate>
             <div class="field"><label for="loginEmail">Email</label><input id="loginEmail" name="email" type="email" autocomplete="email" /><span class="error" data-error-for="loginEmail"></span></div>
             <div class="field"><label for="loginPassword">Password</label><div class="password-field"><input id="loginPassword" name="password" type="password" autocomplete="current-password" /><button class="toggle-password" type="button" data-toggle="loginPassword">Show</button></div><span class="error" data-error-for="loginPassword"></span></div>
@@ -49,7 +49,7 @@
         </section>
 
         <section class="auth-view" id="signupView">
-          <div class="view-heading"><p class="eyebrow">Create account</p><h2>Start your profile</h2></div>
+          <div class="view-heading"><p class="eyebrow">Create account</p><h2>Start your assessment</h2></div>
           <form id="signupForm" novalidate>
             <div class="form-grid">
               <div class="field"><label for="signupName">Full Name</label><input id="signupName" name="name" type="text" autocomplete="name" /><span class="error" data-error-for="signupName"></span></div>
@@ -65,8 +65,8 @@
         </section>
 
         <section class="auth-view" id="forgotView">
-          <div class="view-heading"><p class="eyebrow">Password recovery</p><h2 id="forgotTitle">Verify your phone</h2></div>
-          <div class="reset-steps"><span class="reset-step active" data-reset-step="phone">Phone</span><span class="reset-step" data-reset-step="otp">OTP</span><span class="reset-step" data-reset-step="password">New Password</span></div>
+          <div class="view-heading"><p class="eyebrow">Password recovery</p><h2>Verify your phone</h2></div>
+          <div class="reset-steps"><span class="reset-step active">Phone</span><span class="reset-step">OTP</span><span class="reset-step">New Password</span></div>
           <form id="phoneForm" class="reset-form active" novalidate><div class="field"><label for="resetPhone">Registered Phone Number</label><input id="resetPhone" name="phone" type="tel" inputmode="numeric" /><span class="error" data-error-for="resetPhone"></span></div><button class="primary-button" type="submit">Send OTP</button></form>
           <form id="otpForm" class="reset-form" novalidate><div class="field"><label for="otpCode">Enter OTP</label><input id="otpCode" name="otp" type="text" inputmode="numeric" maxlength="6" /><span class="error" data-error-for="otpCode"></span></div><button class="primary-button" type="submit">Verify OTP</button></form>
           <form id="resetPasswordForm" class="reset-form" novalidate>
@@ -82,53 +82,43 @@
 
     <main class="app-shell hidden" id="appShell">
       <header class="app-topbar">
-        <div class="brand compact"><span class="brand-mark">HS</span><div><p class="eyebrow">HiddenSpark</p><h1>Talent Intelligence</h1></div></div>
-        <nav class="flow-stepper" aria-label="Progress"><span data-flow="profile">Profile</span><span data-flow="analysis">Analysis</span><span data-flow="domain">Domain</span><span data-flow="quiz">Quiz</span></nav>
+        <div class="brand compact"><span class="brand-mark">HS</span><div><p class="eyebrow">HiddenSpark</p><h1>Talent Assessment</h1></div></div>
+        <nav class="flow-stepper" aria-label="Assessment progress">
+          <span data-flow="1">Section 1</span>
+          <span data-flow="2">Section 2</span>
+          <span data-flow="3">Section 3</span>
+          <span data-flow="report">Your Report</span>
+        </nav>
         <div class="user-menu"><strong id="navUserName">Student</strong><button class="secondary-button" id="logoutButton" type="button">Logout</button></div>
       </header>
 
-      <section class="app-view active" id="profileView">
-        <div class="workspace-card">
-          <div class="view-heading"><p class="eyebrow" id="profileStepMeta">Step 1 of 5</p><h2 id="profileStepTitle">Personal Info</h2></div>
-          <div class="progress-track"><div class="progress-bar" id="profileProgress"></div></div>
-          <form id="profileForm" novalidate><div id="profileStepContent"></div><div class="form-actions"><button class="ghost-button" id="profileBack" type="button">Back</button><button class="secondary-button" id="saveDraft" type="button">Save Draft</button><button class="primary-button" id="profileNext" type="submit">Continue</button></div><p class="form-message" id="profileMessage"></p></form>
-        </div>
-      </section>
-
-      <section class="app-view" id="analysisView">
-        <div class="workspace-card">
-          <div class="view-heading"><p class="eyebrow">AI analysis dashboard</p><h2>Your Profile Summary</h2></div>
-          <div class="skeleton hidden" id="analysisLoading"><span></span><span></span><span></span></div>
-          <p class="summary-copy" id="analysisSummary"></p>
-          <div class="analysis-grid"><div class="chart-panel" id="domainChart"></div><div class="reason-panel"><h3>Why we think this</h3><div id="reasoningList"></div></div></div>
-          <button class="primary-button" id="toDomainButton" type="button">Confirm Domain</button>
-        </div>
-      </section>
-
-      <section class="app-view" id="domainView">
-        <div class="workspace-card">
-          <div class="view-heading"><p class="eyebrow">Domain confirmation</p><h2>Choose your focus domain</h2></div>
-          <form id="domainForm"><div class="suggestion-grid" id="domainSuggestions"></div><div class="field"><label for="manualDomain">Or select another domain</label><select id="manualDomain"></select></div><div class="field"><label for="domainNote">Why are you interested in this domain?</label><textarea id="domainNote" rows="4"></textarea></div><button class="primary-button" type="submit">Save and Start Quiz</button><p class="form-message" id="domainMessage"></p></form>
-        </div>
-      </section>
-
-      <section class="app-view" id="quizView">
-        <div class="workspace-card">
-          <div class="view-heading"><p class="eyebrow" id="quizMeta">Question 1 of 10</p><h2 id="quizDomainTitle">Domain Quiz</h2></div>
+      <section class="quiz-shell" id="quizShell">
+        <div class="section-hero">
+          <p class="eyebrow" id="sectionMeta">Section 1 of 3 - Question 1 of 10</p>
+          <h2 id="sectionTitle">Let's Discover Your Hidden Talents</h2>
           <div class="progress-track"><div class="progress-bar" id="quizProgress"></div></div>
-          <form id="quizForm"><div id="quizQuestion"></div><div class="form-actions"><button class="ghost-button" id="quizBack" type="button">Back</button><button class="primary-button" type="submit" id="quizNext">Next</button></div></form>
         </div>
+
+        <form class="question-card" id="talentForm" novalidate>
+          <div id="questionMount"></div>
+          <div class="form-actions">
+            <button class="ghost-button" id="backQuestion" type="button">Back</button>
+            <p class="autosave" id="autosaveStatus">Saved answers stay linked to your login.</p>
+            <button class="primary-button" id="nextQuestion" type="submit" disabled>Next</button>
+          </div>
+        </form>
       </section>
 
-      <section class="app-view" id="submittedView">
-        <div class="workspace-card submitted">
-          <p class="eyebrow">Responses submitted</p>
-          <h2>Quiz complete</h2>
-          <p id="quizFeedback"></p>
-          <button class="secondary-button" id="restartProfile" type="button">Update Profile</button>
-        </div>
+      <section class="report-shell hidden" id="reportShell">
+        <div id="reportMount"></div>
       </section>
     </main>
+
+    <section class="loading-overlay hidden" id="loadingOverlay" aria-live="polite">
+      <div class="loader-ring"></div>
+      <h2>Generating your talent report</h2>
+      <p id="loadingMessage">Analysing your strengths...</p>
+    </section>
 
     <script src="script.js"></script>
   </body>

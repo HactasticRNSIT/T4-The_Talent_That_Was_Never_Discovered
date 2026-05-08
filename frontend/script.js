@@ -2,37 +2,64 @@ const API_BASE = window.location.protocol === "file:" ? "http://localhost:4000" 
 const tokenKey = "hiddenSparkAuthToken";
 const userKey = "hiddenSparkUser";
 
+const loadingMessages = [
+  "Analysing your strengths...",
+  "Identifying hidden talents...",
+  "Reading motivation signals...",
+  "Building your career roadmap...",
+];
+
+const questions = [
+  { id: 1, section: 1, type: "textarea", text: "What activities make you lose track of time completely, even when no one asks you to do them?" },
+  { id: 2, section: 1, type: "checkbox", text: "When working in a group, what role do you naturally take most often?", options: ["Leader", "Planner/Organizer", "Problem Solver", "Creative Idea Generator", "Mediator", "Technical Executor", "Presenter/Communicator"] },
+  { id: 3, section: 1, type: "textarea", text: "Describe a situation where you solved a problem in a way different from others. What did you do?" },
+  { id: 4, section: 1, type: "text", text: "Which type of tasks do people usually come to you for help with?" },
+  { id: 5, section: 1, type: "textarea", text: "If marks and money did not matter, what would you spend most of your time learning or building?" },
+  { id: 6, section: 1, type: "checkbox", text: "Which of these activities energize you the most? Choose all that apply.", options: ["Designing or drawing", "Coding or building tech", "Explaining concepts to others", "Performing/speaking", "Writing stories or ideas", "Solving puzzles or logic problems", "Organizing events/projects", "Helping people emotionally", "Sports/physical activities", "Researching deeply into topics"] },
+  { id: 7, section: 1, type: "textarea", text: "Tell us about something you taught yourself without formal instruction. How did you learn it?" },
+  { id: 8, section: 1, type: "checkbox", text: "What kind of challenges excite you the most?", options: ["Competing against others", "Creating something new", "Solving difficult problems", "Helping people", "Leading teams", "Exploring unknown ideas", "Improving systems/processes"] },
+  { id: 9, section: 1, type: "textarea", text: "When you fail at something important, what do you usually do next?" },
+  { id: 10, section: 1, type: "textarea", text: "Imagine you are given unlimited resources for one year to build, create, solve, or improve something. What would you choose and why?" },
+  { id: 11, section: 2, type: "slider", text: "How confident do you feel while using this skill/talent compared to others your age?", min: 1, max: 10 },
+  { id: 12, section: 2, type: "radio", text: "How often do you voluntarily engage in activities related to this skill without being forced or graded?", options: ["Rarely", "Sometimes", "Often", "Almost Daily"] },
+  { id: 13, section: 2, type: "radio", text: "How quickly do you improve when practicing this skill?", options: ["Very Slowly", "Slowly", "Average", "Fast", "Extremely Fast"] },
+  { id: 14, section: 2, type: "radio", text: "How do people usually react when you demonstrate this skill?", options: ["They rarely notice", "They appreciate it occasionally", "They often compliment me", "They actively seek my help", "They consider me exceptionally good at it"] },
+  { id: 15, section: 2, type: "slider", text: "How well can you perform this skill under pressure, deadlines, or competition?", min: 1, max: 10 },
+  { id: 16, section: 2, type: "radio", text: "How much time can you continuously spend on activities involving this talent before feeling mentally tired?", options: ["Less than 15 minutes", "15-30 minutes", "30-60 minutes", "1-2 hours", "More than 2 hours"] },
+  { id: 17, section: 2, type: "radio", text: "How often do you independently try to improve this skill through practice, courses, videos, books, or experimentation?", options: ["Never", "Rarely", "Sometimes", "Frequently", "Very Frequently"] },
+  { id: 18, section: 2, type: "slider", text: "Compared to your other skills, how naturally easy does this one feel to you?", min: 1, max: 10 },
+  { id: 19, section: 2, type: "textarea", text: "Have you ever achieved measurable results using this talent? Examples: awards, leadership roles, successful projects, appreciation, followers, improved team performance, solving real problems, etc." },
+  { id: 20, section: 2, type: "textarea", text: "If you had to rely on only this skill to build your future career or reputation, how confident would you feel? Why?" },
+  { id: 21, section: 3, type: "checkbox", text: "Which types of activities excite you the most, even when they are challenging?", options: ["Building or creating things", "Solving logical problems", "Helping or guiding people", "Performing or communicating", "Designing or imagining ideas", "Managing or leading teams", "Researching and discovering new information", "Working with technology", "Working outdoors or physically"] },
+  { id: 22, section: 3, type: "textarea", text: "If you could spend an entire day doing only one kind of work, what would you choose and why?" },
+  { id: 23, section: 3, type: "textarea", text: "Which school subjects or learning experiences do you naturally enjoy the most? And which ones feel draining?" },
+  { id: 24, section: 3, type: "checkbox", text: "What type of problems would you love solving in the real world?", options: ["Environmental issues", "Business problems", "Human emotions and mental health", "Technology and innovation", "Education", "Healthcare", "Entertainment/media", "Social inequality", "Scientific discovery"] },
+  { id: 25, section: 3, type: "radio", text: "What kind of work environment do you imagine yourself enjoying the most?", options: ["Fast-paced and competitive", "Creative and flexible", "Structured and organized", "Independent and quiet", "Team-oriented and social", "Fieldwork/adventure-based", "Research-focused"] },
+  { id: 26, section: 3, type: "radio", text: "Which of these achievements would make you feel most fulfilled?", options: ["Inventing something impactful", "Leading a successful company/team", "Helping thousands of people", "Becoming famous or influential", "Solving difficult scientific/technical problems", "Creating art/content loved by people", "Teaching or inspiring others"] },
+  { id: 27, section: 3, type: "textarea", text: "Who do you admire the most and why?" },
+  { id: 28, section: 3, type: "radio", text: "Would you rather:", options: ["Create new ideas", "Improve existing systems", "Work with people directly", "Work with machines/data/technology", "Analyze information deeply", "Take action and execute quickly"] },
+  { id: 29, section: 3, type: "textarea", text: "Imagine you are guaranteed success in any field. What career would you choose without hesitation?" },
+  { id: 30, section: 3, type: "ranking", text: "What matters most to you in your future career? Drag to rank these from highest to lowest priority.", options: ["Money", "Creativity", "Stability", "Freedom/Flexibility", "Social Impact", "Recognition/Fame", "Innovation", "Work-Life Balance", "Leadership Opportunities"] },
+];
+
 const state = {
   user: JSON.parse(localStorage.getItem(userKey) || "null"),
   resetPhone: "",
   resetToken: "",
-  profileStep: 0,
-  profile: {
-    name: "",
-    age: "",
-    cgpa: "",
-    achievements: [{ title: "", description: "", year: "" }],
-    events: [{ name: "", role: "Participant", location: "", date: "" }],
-    roleModels: [{ name: "", why: "", domain: "" }],
-    clubs: [{ name: "", institution: "", status: "Registered Member", domain: "Technology" }],
-  },
-  analysis: null,
-  selectedDomain: "",
-  questions: [],
-  quizIndex: 0,
-  quizAnswers: [],
-  domains: [],
+  currentIndex: 0,
+  answers: {},
+  report: null,
+  saveTimer: null,
+  loadingTimer: null,
 };
 
 const authShell = document.querySelector("#authShell");
 const appShell = document.querySelector("#appShell");
-const profileSteps = [
-  { title: "Personal Info", key: "personal" },
-  { title: "Achievements", key: "achievements" },
-  { title: "Events Participated", key: "events" },
-  { title: "Inspirations & Role Models", key: "roleModels" },
-  { title: "Clubs & Organizations", key: "clubs" },
-];
+const quizShell = document.querySelector("#quizShell");
+const reportShell = document.querySelector("#reportShell");
+const questionMount = document.querySelector("#questionMount");
+const nextButton = document.querySelector("#nextQuestion");
+const backButton = document.querySelector("#backQuestion");
 
 function token() {
   return localStorage.getItem(tokenKey);
@@ -56,19 +83,20 @@ function showAuthView(name) {
   clearMessages();
 }
 
-function showAppView(name) {
-  document.querySelectorAll(".app-view").forEach((view) => view.classList.toggle("active", view.id === `${name}View`));
-  document.querySelectorAll(".flow-stepper span").forEach((step) => step.classList.toggle("active", step.dataset.flow === name));
-}
-
 function clearMessages() {
   document.querySelectorAll(".form-message, .error").forEach((item) => (item.textContent = ""));
 }
 
 function setMessage(id, message, type = "neutral") {
   const item = document.querySelector(`#${id}`);
+  if (!item) return;
   item.textContent = message;
   item.className = `form-message ${type}`;
+}
+
+function setFieldError(id, message) {
+  const error = document.querySelector(`[data-error-for="${id}"]`);
+  if (error) error.textContent = message;
 }
 
 function setLoading(form, loading) {
@@ -77,11 +105,6 @@ function setLoading(form, loading) {
   button.dataset.originalText ||= button.textContent;
   button.textContent = loading ? "Please wait..." : button.dataset.originalText;
   button.disabled = loading;
-}
-
-function setFieldError(id, message) {
-  const error = document.querySelector(`[data-error-for="${id}"]`);
-  if (error) error.textContent = message;
 }
 
 function getFormData(form) {
@@ -98,6 +121,20 @@ function isEmail(value) {
 
 function isStrongPassword(value) {
   return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(value);
+}
+
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
+}
+
+function scoreOutOfTen(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  return number > 10 ? Math.round(number / 10) : number;
+}
+
+function scorePercent(value) {
+  return Math.min(100, Math.max(0, scoreOutOfTen(value) * 10));
 }
 
 function logout() {
@@ -119,164 +156,264 @@ async function bootApp() {
   authShell.classList.add("hidden");
   appShell.classList.remove("hidden");
   document.querySelector("#navUserName").textContent = state.user?.name || "Student";
-  state.profile.name ||= state.user?.name || "";
-  state.profile.age ||= state.user?.age || "";
-  showAppView("profile");
-  renderProfileStep();
 
-  try {
-    const data = await request("/api/profile");
-    state.user = data.user;
-    state.profile = data.profile || { ...state.profile, name: data.user.name, age: data.user.age };
-    state.analysis = data.analysis;
-    state.selectedDomain = data.domainSelection?.selectedDomain || "";
-    if (data.quizAttempt) renderSubmitted(data.quizAttempt);
-    else if (data.domainSelection) await startQuiz(data.domainSelection.selectedDomain);
-    else if (data.analysis) renderAnalysis(data.analysis);
-    else renderProfileStep();
-  } catch (error) {
-    setMessage("profileMessage", error.message, "error");
+  const data = await request("/api/talent/state");
+  state.user = data.user;
+  state.answers = Object.fromEntries(data.answers.map((item) => [item.question_number, item.answer]));
+  state.report = data.report;
+  localStorage.setItem(userKey, JSON.stringify(data.user));
+  document.querySelector("#navUserName").textContent = data.user.name;
+
+  if (state.report) {
+    renderReport(state.report);
+    return;
+  }
+
+  state.currentIndex = questions.findIndex((question) => !isAnswerFilled(state.answers[question.id]));
+  if (state.currentIndex === -1) state.currentIndex = questions.length - 1;
+  renderQuestion();
+}
+
+function sectionTitle(section) {
+  if (section === 1) return "Let's Discover Your Hidden Talents";
+  if (section === 2) return "How Strong Are Your Skills?";
+  return "What Does Your Future Look Like?";
+}
+
+function renderQuestion() {
+  quizShell.classList.remove("hidden");
+  reportShell.classList.add("hidden");
+
+  const question = questions[state.currentIndex];
+  const localNumber = ((question.id - 1) % 10) + 1;
+  document.querySelector("#sectionMeta").textContent = `Section ${question.section} of 3 - Question ${localNumber} of 10`;
+  document.querySelector("#sectionTitle").textContent = sectionTitle(question.section);
+  document.querySelector("#quizProgress").style.width = `${((state.currentIndex + 1) / questions.length) * 100}%`;
+  document.querySelectorAll(".flow-stepper span").forEach((step) => step.classList.toggle("active", step.dataset.flow === String(question.section)));
+  backButton.disabled = state.currentIndex === 0;
+  nextButton.textContent = getNextButtonLabel(question);
+  questionMount.innerHTML = `<article class="question-card-inner"><span class="question-number">Q${question.id}</span><h3>${question.text}</h3>${renderInput(question)}</article>`;
+  wireRanking(question);
+  updateNextState();
+}
+
+function getNextButtonLabel(question) {
+  if (question.id === 10) return "Continue to Section 2";
+  if (question.id === 20) return "Continue to Section 3";
+  if (question.id === 30) return "Generate My Talent Report";
+  return "Next";
+}
+
+function renderInput(question) {
+  const value = state.answers[question.id];
+  if (question.type === "textarea") return `<textarea name="answer" rows="5" minlength="2" placeholder="Write your answer here...">${escapeHtml(value || "")}</textarea>`;
+  if (question.type === "text") return `<input name="answer" type="text" placeholder="Short answer" value="${escapeHtml(value || "")}" />`;
+  if (question.type === "checkbox") {
+    const values = Array.isArray(value) ? value : [];
+    return `<div class="option-grid">${question.options.map((option) => `<label class="option-card"><input type="checkbox" name="answer" value="${escapeHtml(option)}" ${values.includes(option) ? "checked" : ""} /><span>${option}</span></label>`).join("")}</div>`;
+  }
+  if (question.type === "radio") {
+    return `<div class="option-grid">${question.options.map((option) => `<label class="option-card"><input type="radio" name="answer" value="${escapeHtml(option)}" ${value === option ? "checked" : ""} /><span>${option}</span></label>`).join("")}</div>`;
+  }
+  if (question.type === "slider") {
+    const sliderValue = value || 5;
+    return `<div class="slider-wrap"><input name="answer" type="range" min="${question.min}" max="${question.max}" value="${sliderValue}" /><strong id="sliderValue">${sliderValue}</strong></div>`;
+  }
+  const ranking = Array.isArray(value) && value.length === question.options.length ? value : question.options;
+  return `<ol class="ranking-list" id="rankingList">${ranking.map((item, index) => `<li draggable="true" data-value="${escapeHtml(item)}"><span>${index + 1}</span><strong>${item}</strong><button type="button" data-move="up">Up</button><button type="button" data-move="down">Down</button></li>`).join("")}</ol>`;
+}
+
+function collectAnswer() {
+  const question = questions[state.currentIndex];
+  if (question.type === "checkbox") return [...questionMount.querySelectorAll('input[name="answer"]:checked')].map((input) => input.value);
+  if (question.type === "radio") return questionMount.querySelector('input[name="answer"]:checked')?.value || "";
+  if (question.type === "ranking") return [...questionMount.querySelectorAll("#rankingList li")].map((item) => item.dataset.value);
+  return questionMount.querySelector('[name="answer"]')?.value || "";
+}
+
+function isAnswerFilled(answer) {
+  if (Array.isArray(answer)) return answer.length > 0;
+  return String(answer || "").trim().length > 0;
+}
+
+function updateNextState() {
+  const answer = collectAnswer();
+  nextButton.disabled = !isAnswerFilled(answer);
+  if (questions[state.currentIndex].type === "slider") {
+    document.querySelector("#sliderValue").textContent = answer;
   }
 }
 
-function profilePayloadFromDom() {
-  const payload = structuredClone(state.profile);
-  document.querySelectorAll("[data-profile-field]").forEach((input) => {
-    const field = input.dataset.profileField;
-    const collection = input.dataset.collection;
-    const index = Number(input.dataset.index);
-    if (collection) payload[collection][index][field] = input.value;
-    else payload[field] = input.value;
-  });
-  state.profile = payload;
-  return payload;
+function scheduleAutosave() {
+  window.clearTimeout(state.saveTimer);
+  state.saveTimer = window.setTimeout(() => saveCurrentAnswer(false), 650);
 }
 
-function renderProfileStep() {
-  const step = profileSteps[state.profileStep];
-  document.querySelector("#profileStepMeta").textContent = `Step ${state.profileStep + 1} of ${profileSteps.length}`;
-  document.querySelector("#profileStepTitle").textContent = step.title;
-  document.querySelector("#profileProgress").style.width = `${((state.profileStep + 1) / profileSteps.length) * 100}%`;
-  document.querySelector("#profileBack").disabled = state.profileStep === 0;
-  document.querySelector("#profileNext").textContent = state.profileStep === profileSteps.length - 1 ? "Submit for AI Analysis" : "Continue";
-  document.querySelector("#profileStepContent").innerHTML = renderStepContent(step.key);
-}
-
-function field(label, html) {
-  return `<div class="field"><label>${label}</label>${html}</div>`;
-}
-
-function renderStepContent(key) {
-  const p = state.profile;
-  if (key === "personal") {
-    return `<div class="form-grid">
-      ${field("Full Name", `<input data-profile-field="name" value="${escapeHtml(p.name)}" />`)}
-      ${field("Age", `<input data-profile-field="age" type="number" value="${escapeHtml(p.age)}" />`)}
-      ${field("CGPA / Percentage", `<input data-profile-field="cgpa" placeholder="8.6 CGPA or 86%" value="${escapeHtml(p.cgpa)}" />`)}
-    </div>`;
-  }
-  if (key === "achievements") return dynamicRows("achievements", ["title", "description", "year"], ["Title", "Description", "Year"]);
-  if (key === "events") return dynamicRows("events", ["name", "role", "location", "date"], ["Event Name", "Role", "Location", "Date"]);
-  if (key === "roleModels") return dynamicRows("roleModels", ["name", "why", "domain"], ["Role Model Name", "Why they inspire you", "Domain/Field"]);
-  return dynamicRows("clubs", ["name", "institution", "status", "domain"], ["Club/Society Name", "College or School", "Status", "Domain"]);
-}
-
-function dynamicRows(collection, keys, labels) {
-  return `<div class="dynamic-list">${state.profile[collection].map((item, index) => `
-    <article class="dynamic-row">
-      <button class="icon-button remove-row" type="button" data-remove="${collection}" data-index="${index}" aria-label="Remove row">x</button>
-      <div class="form-grid">${keys.map((key, i) => field(labels[i], control(collection, key, item[key], index))).join("")}</div>
-    </article>`).join("")}</div>
-    <button class="secondary-button add-row" type="button" data-add="${collection}">Add ${labels[0]}</button>`;
-}
-
-function control(collection, key, value, index) {
-  const attr = `data-profile-field="${key}" data-collection="${collection}" data-index="${index}"`;
-  if (key === "role") return `<select ${attr}>${["Participant", "Organizer", "Volunteer"].map((o) => `<option ${value === o ? "selected" : ""}>${o}</option>`).join("")}</select>`;
-  if (key === "status") return `<select ${attr}>${["Registered Member", "Shown Interest", "Applied"].map((o) => `<option ${value === o ? "selected" : ""}>${o}</option>`).join("")}</select>`;
-  if (key === "domain" && collection === "clubs") return `<select ${attr}>${["Technology", "Design", "Business", "Social Impact", "Sports", "Arts", "Science", "Other"].map((o) => `<option ${value === o ? "selected" : ""}>${o}</option>`).join("")}</select>`;
-  if (key === "description" || key === "why") return `<textarea ${attr} rows="3">${escapeHtml(value)}</textarea>`;
-  return `<input ${attr} ${key === "date" ? 'type="date"' : ""} value="${escapeHtml(value)}" />`;
-}
-
-function escapeHtml(value) {
-  return String(value || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
-}
-
-async function saveDraft() {
-  const payload = profilePayloadFromDom();
-  await request("/api/profile/draft", { method: "POST", body: JSON.stringify(payload) });
-  setMessage("profileMessage", "Draft saved.", "success");
-}
-
-async function analyseProfile() {
-  document.querySelector("#analysisLoading").classList.remove("hidden");
-  showAppView("analysis");
-  const data = await request("/api/profile/analyse", { method: "POST", body: JSON.stringify(profilePayloadFromDom()) });
-  state.profile = data.profile;
-  state.analysis = data.analysis;
-  renderAnalysis(data.analysis);
-}
-
-function renderAnalysis(analysis) {
-  showAppView("analysis");
-  document.querySelector("#analysisLoading").classList.add("hidden");
-  document.querySelector("#analysisSummary").textContent = analysis.summary;
-  const scores = analysis.confidence_scores || {};
-  document.querySelector("#domainChart").innerHTML = Object.entries(scores).slice(0, 7).map(([domain, score]) => `
-    <div class="bar-row"><span>${domain}</span><div><i style="width:${score}%"></i></div><strong>${score}%</strong></div>`).join("");
-  document.querySelector("#reasoningList").innerHTML = (analysis.domains || []).map(({ domain }) => `
-    <article><h4>${domain}</h4><ul>${(analysis.reasoning?.[domain] || []).map((reason) => `<li>${reason}</li>`).join("")}</ul></article>`).join("");
-  renderDomainOptions();
-}
-
-async function renderDomainOptions() {
-  const data = await request("/api/domains");
-  state.domains = data.domains;
-  const suggested = state.analysis?.domains || [];
-  document.querySelector("#domainSuggestions").innerHTML = suggested.map((item, index) => `
-    <label class="suggestion-card"><input type="radio" name="suggestedDomain" value="${item.domain}" ${index === 0 ? "checked" : ""} /><strong>${item.domain}</strong><span>${item.confidence}% confidence</span></label>`).join("");
-  document.querySelector("#manualDomain").innerHTML = `<option value="">Use AI suggestion</option>${data.domains.map((domain) => `<option>${domain}</option>`).join("")}`;
-}
-
-async function startQuiz(domain) {
-  state.selectedDomain = domain;
-  const data = await request(`/api/questions?domain=${encodeURIComponent(domain)}`);
-  state.questions = data.questions;
-  state.quizAnswers = [];
-  state.quizIndex = 0;
-  showAppView("quiz");
-  renderQuizQuestion();
-}
-
-function renderQuizQuestion() {
-  const question = state.questions[state.quizIndex];
-  document.querySelector("#quizDomainTitle").textContent = `${state.selectedDomain} Quiz`;
-  document.querySelector("#quizMeta").textContent = `Question ${state.quizIndex + 1} of ${state.questions.length}`;
-  document.querySelector("#quizProgress").style.width = `${((state.quizIndex + 1) / state.questions.length) * 100}%`;
-  document.querySelector("#quizNext").textContent = state.quizIndex === state.questions.length - 1 ? "Submit Responses" : "Next";
-  document.querySelector("#quizBack").disabled = state.quizIndex === 0;
-  const saved = state.quizAnswers[state.quizIndex]?.answer || "";
-  const answerControl = question.type === "MCQ"
-    ? question.options.map((option) => `<label class="choice"><input type="radio" name="answer" value="${escapeHtml(option)}" ${saved === option ? "checked" : ""} />${option}</label>`).join("")
-    : question.type === "Rating Scale"
-      ? `<div class="rating">${[1, 2, 3, 4, 5].map((n) => `<label><input type="radio" name="answer" value="${n}" ${String(saved) === String(n) ? "checked" : ""} />${n}</label>`).join("")}</div>`
-      : `<textarea name="answer" rows="5">${escapeHtml(saved)}</textarea>`;
-  document.querySelector("#quizQuestion").innerHTML = `<article class="question-block"><span>${question.difficulty} / ${question.type}</span><h3>${question.question_text}</h3>${answerControl}</article>`;
-}
-
-async function submitQuiz() {
-  const data = await request("/api/quiz/submit", {
+async function saveCurrentAnswer(showSaved = true) {
+  const question = questions[state.currentIndex];
+  const answer = collectAnswer();
+  if (!isAnswerFilled(answer)) return;
+  state.answers[question.id] = answer;
+  document.querySelector("#autosaveStatus").textContent = "Saving...";
+  await request("/api/talent/answer", {
     method: "POST",
-    body: JSON.stringify({ domain: state.selectedDomain, answers: state.quizAnswers }),
+    body: JSON.stringify({ section: question.section, question_number: question.id, answer }),
   });
-  renderSubmitted(data.attempt);
+  document.querySelector("#autosaveStatus").textContent = showSaved ? "Saved. You can continue." : "Autosaved.";
 }
 
-function renderSubmitted(attempt) {
-  showAppView("submitted");
-  document.querySelector("#quizFeedback").textContent = attempt.aiFeedback;
+function wireRanking(question) {
+  if (question.type !== "ranking") return;
+  const list = document.querySelector("#rankingList");
+  let dragged = null;
+
+  list.addEventListener("dragstart", (event) => {
+    dragged = event.target.closest("li");
+    event.dataTransfer.effectAllowed = "move";
+  });
+  list.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    const target = event.target.closest("li");
+    if (!target || target === dragged) return;
+    const before = target.getBoundingClientRect().top + target.offsetHeight / 2 > event.clientY;
+    list.insertBefore(dragged, before ? target : target.nextSibling);
+  });
+  list.addEventListener("drop", () => {
+    renumberRanking();
+    updateNextState();
+    scheduleAutosave();
+  });
+  list.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-move]");
+    if (!button) return;
+    const item = button.closest("li");
+    if (button.dataset.move === "up" && item.previousElementSibling) list.insertBefore(item, item.previousElementSibling);
+    if (button.dataset.move === "down" && item.nextElementSibling) list.insertBefore(item.nextElementSibling, item);
+    renumberRanking();
+    updateNextState();
+    scheduleAutosave();
+  });
 }
+
+function renumberRanking() {
+  document.querySelectorAll("#rankingList li span").forEach((span, index) => {
+    span.textContent = index + 1;
+  });
+}
+
+function showGenerationOverlay(show) {
+  const overlay = document.querySelector("#loadingOverlay");
+  overlay.classList.toggle("hidden", !show);
+  window.clearInterval(state.loadingTimer);
+  if (!show) return;
+  let index = 0;
+  document.querySelector("#loadingMessage").textContent = loadingMessages[index];
+  state.loadingTimer = window.setInterval(() => {
+    index = (index + 1) % loadingMessages.length;
+    document.querySelector("#loadingMessage").textContent = loadingMessages[index];
+  }, 1400);
+}
+
+async function generateReport() {
+  showGenerationOverlay(true);
+  try {
+    const data = await request("/api/talent/analyse", { method: "POST", body: "{}" });
+    state.report = data.report;
+    renderReport(data.report);
+  } finally {
+    showGenerationOverlay(false);
+  }
+}
+
+function renderReport(report) {
+  quizShell.classList.add("hidden");
+  reportShell.classList.remove("hidden");
+  document.querySelectorAll(".flow-stepper span").forEach((step) => step.classList.toggle("active", step.dataset.flow === "report"));
+  const skills = Object.entries(report.skill_strength_scores || {}).slice(0, 5);
+  const roadmap = String(report.career_roadmap || "").split("|").map((item) => item.trim()).filter(Boolean);
+
+  document.querySelector("#reportMount").innerHTML = `
+    <header class="report-header">
+      <div><p class="eyebrow">AI talent report</p><h2>${escapeHtml(state.user?.name || "Your")} Hidden Talent Profile</h2></div>
+      <div class="report-actions"><button class="secondary-button" id="downloadReport" type="button">Download Report as PDF</button><button class="ghost-button" id="retakeAssessment" type="button">Retake Assessment</button></div>
+    </header>
+
+    <section class="report-section">
+      <p class="section-label">Section A - Who You Are</p>
+      <div class="tag-cloud">${(report.personality_traits || []).map((trait) => `<span>${escapeHtml(trait)}</span>`).join("")}</div>
+      <div class="report-grid two">
+        <article class="report-card"><h3>Learning Style</h3><p>${escapeHtml(report.learning_style || "")}</p></article>
+        <article class="report-card"><h3>Top 5 Strongest Skills</h3>${skills.map(([skill, score]) => `<div class="skill-bar"><span>${escapeHtml(skill)}</span><div><i style="width:${scorePercent(score)}%"></i></div><strong>${scoreOutOfTen(score)}/10</strong></div>`).join("")}</article>
+      </div>
+    </section>
+
+    <section class="report-section">
+      <p class="section-label">Section B - Your Hidden Talents</p>
+      <div class="talent-grid">${(report.hidden_talents || []).map((talent) => `<article><strong>${escapeHtml(talent)}</strong></article>`).join("")}</div>
+      <article class="callout"><span>Most underrated talent</span><strong>${escapeHtml(report.most_underrated_talent || "")}</strong></article>
+      <ul class="action-list">${(report.unrealized_potential || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    </section>
+
+    <section class="report-section">
+      <p class="section-label">Section C - Leadership & Creativity</p>
+      <div class="report-grid three">
+        <article class="metric-card"><div class="ring" style="--score:${scorePercent(report.leadership_potential?.score)}"><strong>${scoreOutOfTen(report.leadership_potential?.score)}</strong></div><h3>Leadership Potential</h3><p>${escapeHtml(report.leadership_potential?.analysis || "")}</p></article>
+        <article class="report-card"><h3>Creativity & Innovation</h3><p>${escapeHtml(report.creativity_analysis || "")}</p></article>
+        <article class="metric-card"><div class="gauge"><i style="width:${scorePercent(report.entrepreneurial_potential_score)}%"></i></div><h3>Entrepreneurial Potential</h3><strong>${scoreOutOfTen(report.entrepreneurial_potential_score)}/10</strong></article>
+      </div>
+      <article class="report-card"><h3>Communication & Emotional Intelligence</h3><p>${escapeHtml(report.communication_eq_analysis || "")}</p></article>
+    </section>
+
+    <section class="report-section">
+      <p class="section-label">Section D - Your Career Path</p>
+      <div class="career-grid">${(report.best_career_paths || []).slice(0, 3).map((career) => `<article><span>Path</span><strong>${escapeHtml(career)}</strong></article>`).join("")}</div>
+      <div class="future-grid">${(report.emerging_careers || []).map((career) => `<article>${escapeHtml(career)}</article>`).join("")}</div>
+      <div class="timeline">${roadmap.map((item) => `<div><span></span><p>${escapeHtml(item)}</p></div>`).join("")}</div>
+    </section>
+
+    <section class="report-section">
+      <p class="section-label">Section E - Grow Further</p>
+      <ul class="action-list">${(report.skill_improvements || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      <article class="summary-box"><h3>Final Summary of Student Potential</h3><p>${escapeHtml(report.final_summary || "")}</p></article>
+    </section>
+  `;
+
+  document.querySelector("#downloadReport").addEventListener("click", () => window.print());
+  document.querySelector("#retakeAssessment").addEventListener("click", retakeAssessment);
+}
+
+async function retakeAssessment() {
+  await request("/api/talent/retake", { method: "POST", body: "{}" });
+  state.answers = {};
+  state.report = null;
+  state.currentIndex = 0;
+  renderQuestion();
+}
+
+questionMount.addEventListener("input", () => {
+  updateNextState();
+  scheduleAutosave();
+});
+questionMount.addEventListener("change", () => {
+  updateNextState();
+  scheduleAutosave();
+});
+
+document.querySelector("#talentForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  await saveCurrentAnswer(true);
+  if (state.currentIndex === questions.length - 1) {
+    await generateReport();
+    return;
+  }
+  state.currentIndex += 1;
+  renderQuestion();
+});
+
+backButton.addEventListener("click", () => {
+  state.currentIndex = Math.max(0, state.currentIndex - 1);
+  renderQuestion();
+});
 
 document.querySelectorAll("[data-auth-view]").forEach((button) => button.addEventListener("click", () => showAuthView(button.dataset.authView)));
 document.querySelectorAll("[data-toggle]").forEach((button) => button.addEventListener("click", () => {
@@ -375,75 +512,8 @@ document.querySelector("#resetPasswordForm").addEventListener("submit", async (e
   }
 });
 
-document.querySelector("#profileStepContent").addEventListener("click", (event) => {
-  const add = event.target.closest("[data-add]");
-  const remove = event.target.closest("[data-remove]");
-  if (add) {
-    profilePayloadFromDom();
-    const empty = { achievements: { title: "", description: "", year: "" }, events: { name: "", role: "Participant", location: "", date: "" }, roleModels: { name: "", why: "", domain: "" }, clubs: { name: "", institution: "", status: "Registered Member", domain: "Technology" } };
-    state.profile[add.dataset.add].push(empty[add.dataset.add]);
-    renderProfileStep();
-  }
-  if (remove) {
-    profilePayloadFromDom();
-    const list = state.profile[remove.dataset.remove];
-    if (list.length > 1) list.splice(Number(remove.dataset.index), 1);
-    renderProfileStep();
-  }
-});
-
-document.querySelector("#profileForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  clearMessages();
-  if (state.profileStep < profileSteps.length - 1) {
-    profilePayloadFromDom();
-    state.profileStep += 1;
-    renderProfileStep();
-    return;
-  }
-  try {
-    await analyseProfile();
-  } catch (error) {
-    showAppView("profile");
-    setMessage("profileMessage", error.message, "error");
-  }
-});
-
-document.querySelector("#profileBack").addEventListener("click", () => {
-  profilePayloadFromDom();
-  state.profileStep = Math.max(0, state.profileStep - 1);
-  renderProfileStep();
-});
-document.querySelector("#saveDraft").addEventListener("click", () => saveDraft().catch((error) => setMessage("profileMessage", error.message, "error")));
-document.querySelector("#toDomainButton").addEventListener("click", () => { renderDomainOptions(); showAppView("domain"); });
-document.querySelector("#domainForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const suggested = document.querySelector('input[name="suggestedDomain"]:checked')?.value;
-  const selectedDomain = document.querySelector("#manualDomain").value || suggested;
-  try {
-    await request("/api/domain-selection", { method: "POST", body: JSON.stringify({ selectedDomain, userNote: document.querySelector("#domainNote").value }) });
-    await startQuiz(selectedDomain);
-  } catch (error) {
-    setMessage("domainMessage", error.message, "error");
-  }
-});
-
-document.querySelector("#quizForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const answer = new FormData(event.currentTarget).get("answer") || "";
-  state.quizAnswers[state.quizIndex] = { questionId: state.questions[state.quizIndex].id, answer };
-  if (state.quizIndex < state.questions.length - 1) {
-    state.quizIndex += 1;
-    renderQuizQuestion();
-    return;
-  }
-  await submitQuiz();
-});
-document.querySelector("#quizBack").addEventListener("click", () => {
-  state.quizIndex = Math.max(0, state.quizIndex - 1);
-  renderQuizQuestion();
-});
-document.querySelector("#restartProfile").addEventListener("click", () => { state.profileStep = 0; showAppView("profile"); renderProfileStep(); });
 document.querySelector("#logoutButton").addEventListener("click", logout);
 
-if (token() && state.user) bootApp();
+if (token() && state.user) {
+  bootApp().catch(logout);
+}

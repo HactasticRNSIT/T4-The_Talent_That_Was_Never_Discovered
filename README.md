@@ -1,6 +1,6 @@
-# HiddenSpark Talent Intelligence
+# HiddenSpark Hidden Talent Identification
 
-A complete student talent intelligence app with signup, login, profile collection, AI-style domain analysis, domain confirmation, and a curated quiz flow.
+A complete AI-powered hidden talent assessment app with signup, login, a 30-question protected quiz, autosaved answers, and a structured AI-style career/talent report.
 
 ## Tech Stack
 
@@ -8,7 +8,7 @@ A complete student talent intelligence app with signup, login, profile collectio
 - Backend: Node.js, Express
 - Storage: JSON file collections in `backend/data`
 - Security: password hashing with `bcrypt`, JWT with `jsonwebtoken`
-- AI: optional OpenAI API via `OPENAI_API_KEY`, with a local analysis fallback for development
+- AI: optional OpenAI API via `OPENAI_API_KEY`, with a local talent analysis fallback for development
 
 ## Run
 
@@ -32,12 +32,17 @@ Auth:
 
 Protected app:
 
-- `GET /api/profile`
-- `POST /api/profile/draft`
-- `POST /api/profile/analyse`
-- `POST /api/domain-selection`
-- `GET /api/questions?domain=Web%20Development`
-- `POST /api/quiz/submit`
-- `POST /api/admin/questions`
+- `GET /api/talent/state`
+- `POST /api/talent/answer`
+- `POST /api/talent/analyse`
+- `POST /api/talent/retake`
+
+## Assessment Flow
+
+```text
+Login -> Section 1 (Q1-Q10) -> Section 2 (Q11-Q20) -> Section 3 (Q21-Q30) -> AI Report
+```
+
+The final report includes personality traits, learning style, skill strength bars, hidden talents, leadership and entrepreneurial scores, career paths, roadmap, improvement suggestions, PDF print/download, and retake support.
 
 For local testing, forgot password returns the mocked OTP in the API response and logs it in the terminal.
