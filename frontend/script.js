@@ -9,6 +9,20 @@ const loadingMessages = [
   "Building your career roadmap...",
 ];
 
+const socialPlatforms = [
+  { key: "linkedin", name: "LinkedIn", color: "#0A66C2", icon: "linkedin", base: "https://www.linkedin.com/in/" },
+  { key: "github", name: "GitHub", color: "#181717", icon: "github", base: "https://github.com/" },
+  { key: "snapchat", name: "Snapchat", color: "#FFFC00", icon: "snapchat", base: "https://www.snapchat.com/add/" },
+  { key: "instagram", name: "Instagram", color: "#E4405F", icon: "instagram", base: "https://www.instagram.com/" },
+  { key: "facebook", name: "Facebook", color: "#1877F2", icon: "facebook", base: "https://www.facebook.com/" },
+  { key: "twitter", name: "Twitter / X", color: "#000000", icon: "x", base: "https://x.com/" },
+  { key: "reddit", name: "Reddit", color: "#FF4500", icon: "reddit", base: "https://www.reddit.com/user/" },
+  { key: "quora", name: "Quora", color: "#B92B27", icon: "quora", base: "https://www.quora.com/profile/" },
+  { key: "youtube", name: "YouTube", color: "#FF0000", icon: "youtube", base: "https://www.youtube.com/@" },
+];
+
+const emptySocials = Object.fromEntries(socialPlatforms.map((platform) => [platform.key, ""]));
+
 const questions = [
   { id: 1, section: 1, type: "textarea", text: "What activities make you lose track of time completely, even when no one asks you to do them?" },
   { id: 2, section: 1, type: "checkbox", text: "When working in a group, what role do you naturally take most often?", options: ["Leader", "Planner/Organizer", "Problem Solver", "Creative Idea Generator", "Mediator", "Technical Executor", "Presenter/Communicator"] },
@@ -49,12 +63,15 @@ const state = {
   currentIndex: 0,
   answers: {},
   report: null,
+  socials: { ...emptySocials },
+  socialsSaved: false,
   saveTimer: null,
   loadingTimer: null,
 };
 
 const authShell = document.querySelector("#authShell");
 const appShell = document.querySelector("#appShell");
+const socialShell = document.querySelector("#socialShell");
 const quizShell = document.querySelector("#quizShell");
 const reportShell = document.querySelector("#reportShell");
 const questionMount = document.querySelector("#questionMount");
@@ -161,8 +178,15 @@ async function bootApp() {
   state.user = data.user;
   state.answers = Object.fromEntries(data.answers.map((item) => [item.question_number, item.answer]));
   state.report = data.report;
+  state.socialsSaved = Boolean(data.socials);
+  state.socials = { ...emptySocials, ...(data.socials || {}) };
   localStorage.setItem(userKey, JSON.stringify(data.user));
   document.querySelector("#navUserName").textContent = data.user.name;
+
+  if (!state.socialsSaved) {
+    renderSocials();
+    return;
+  }
 
   if (state.report) {
     renderReport(state.report);
@@ -174,6 +198,89 @@ async function bootApp() {
   renderQuestion();
 }
 
+function markFlow(flow) {
+  document.querySelectorAll(".flow-stepper span").forEach((step) => step.classList.toggle("active", step.dataset.flow === String(flow)));
+}
+
+function renderSocials() {
+  socialShell.classList.remove("hidden");
+  quizShell.classList.add("hidden");
+  reportShell.classList.add("hidden");
+  markFlow("social");
+  document.querySelector("#socialList").innerHTML = socialPlatforms.map((platform) => `
+    <article class="social-row" style="--brand:${platform.color}">
+      <img src="https://cdn.simpleicons.org/${platform.icon}/${platform.color.replace("#", "")}" alt="${platform.name}" />
+      <label for="social-${platform.key}">${platform.name}</label>
+      <input id="social-${platform.key}" name="${platform.key}" type="text" placeholder="URL or username" value="${escapeHtml(state.socials[platform.key] || "")}" />
+      <button class="visit-button" type="button" data-visit="${platform.key}" aria-label="Visit ${platform.name} link">&#8599;</button>
+      <span class="social-error" data-social-error="${platform.key}"></span>
+    </article>
+  `).join("");
+  updateSocialCompletion();
+}
+
+function continueAfterSocials() {
+  if (state.report) {
+    renderReport(state.report);
+    return;
+  }
+  state.currentIndex = questions.findIndex((question) => !isAnswerFilled(state.answers[question.id]));
+  if (state.currentIndex === -1) state.currentIndex = questions.length - 1;
+  renderQuestion();
+}
+
+function collectSocials() {
+  return Object.fromEntries(socialPlatforms.map((platform) => {
+    const input = document.querySelector(`#social-${platform.key}`);
+    return [platform.key, input ? input.value.trim() : ""];
+  }));
+}
+
+function isSocialEntryValid(value) {
+  const text = String(value || "").trim();
+  if (!text) return true;
+  if (/^https?:\/\//i.test(text)) {
+    try {
+      const url = new URL(text);
+      return ["http:", "https:"].includes(url.protocol) && url.hostname.includes(".");
+    } catch {
+      return false;
+    }
+  }
+  return !/\s/.test(text) && text.length <= 120;
+}
+
+function validateSocials(values) {
+  const errors = {};
+  socialPlatforms.forEach((platform) => {
+    if (!isSocialEntryValid(values[platform.key])) errors[platform.key] = "Enter a valid URL or username.";
+  });
+  return errors;
+}
+
+function showSocialErrors(errors) {
+  document.querySelectorAll(".social-error").forEach((item) => (item.textContent = ""));
+  Object.entries(errors).forEach(([key, message]) => {
+    const item = document.querySelector(`[data-social-error="${key}"]`);
+    if (item) item.textContent = message;
+  });
+}
+
+function updateSocialCompletion() {
+  const values = collectSocials();
+  const filled = socialPlatforms.filter((platform) => values[platform.key]).length;
+  const percent = Math.round((filled / socialPlatforms.length) * 100);
+  document.querySelector("#socialPercent").textContent = `${percent}%`;
+  document.querySelector("#socialProgress").style.width = `${percent}%`;
+}
+
+function socialUrl(platform, value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (/^https?:\/\//i.test(text)) return text;
+  return `${platform.base}${encodeURIComponent(text.replace(/^@/, ""))}`;
+}
+
 function sectionTitle(section) {
   if (section === 1) return "Let's Discover Your Hidden Talents";
   if (section === 2) return "How Strong Are Your Skills?";
@@ -181,6 +288,7 @@ function sectionTitle(section) {
 }
 
 function renderQuestion() {
+  socialShell.classList.add("hidden");
   quizShell.classList.remove("hidden");
   reportShell.classList.add("hidden");
 
@@ -189,7 +297,7 @@ function renderQuestion() {
   document.querySelector("#sectionMeta").textContent = `Section ${question.section} of 3 - Question ${localNumber} of 10`;
   document.querySelector("#sectionTitle").textContent = sectionTitle(question.section);
   document.querySelector("#quizProgress").style.width = `${((state.currentIndex + 1) / questions.length) * 100}%`;
-  document.querySelectorAll(".flow-stepper span").forEach((step) => step.classList.toggle("active", step.dataset.flow === String(question.section)));
+  markFlow(question.section);
   backButton.disabled = state.currentIndex === 0;
   nextButton.textContent = getNextButtonLabel(question);
   questionMount.innerHTML = `<article class="question-card-inner"><span class="question-number">Q${question.id}</span><h3>${question.text}</h3>${renderInput(question)}</article>`;
@@ -326,9 +434,10 @@ async function generateReport() {
 }
 
 function renderReport(report) {
+  socialShell.classList.add("hidden");
   quizShell.classList.add("hidden");
   reportShell.classList.remove("hidden");
-  document.querySelectorAll(".flow-stepper span").forEach((step) => step.classList.toggle("active", step.dataset.flow === "report"));
+  markFlow("report");
   const skills = Object.entries(report.skill_strength_scores || {}).slice(0, 5);
   const roadmap = String(report.career_roadmap || "").split("|").map((item) => item.trim()).filter(Boolean);
 
@@ -414,6 +523,58 @@ backButton.addEventListener("click", () => {
   state.currentIndex = Math.max(0, state.currentIndex - 1);
   renderQuestion();
 });
+
+document.querySelector("#socialList").addEventListener("input", () => {
+  updateSocialCompletion();
+  showSocialErrors({});
+  document.querySelector("#socialMessage").textContent = "";
+});
+
+document.querySelector("#socialList").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-visit]");
+  if (!button) return;
+  const platform = socialPlatforms.find((item) => item.key === button.dataset.visit);
+  const value = document.querySelector(`#social-${platform.key}`).value.trim();
+  const errors = validateSocials({ ...emptySocials, [platform.key]: value });
+  showSocialErrors(errors);
+  if (!value) {
+    document.querySelector(`[data-social-error="${platform.key}"]`).textContent = "Add a URL or username first.";
+    return;
+  }
+  if (Object.keys(errors).length) return;
+  window.open(socialUrl(platform, value), "_blank", "noopener");
+});
+
+document.querySelector("#socialForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const values = collectSocials();
+  const errors = validateSocials(values);
+  showSocialErrors(errors);
+  if (Object.keys(errors).length) {
+    document.querySelector("#socialMessage").textContent = "Please fix the highlighted links.";
+    return;
+  }
+  setLoading(event.currentTarget, true);
+  try {
+    const data = await request("/api/socials", { method: "POST", body: JSON.stringify(values) });
+    state.socials = { ...emptySocials, ...data.socials };
+    state.socialsSaved = true;
+    continueAfterSocials();
+  } catch (error) {
+    document.querySelector("#socialMessage").textContent = error.message;
+  } finally {
+    setLoading(event.currentTarget, false);
+  }
+});
+
+document.querySelector("#skipSocials").addEventListener("click", async () => {
+  const data = await request("/api/socials", { method: "POST", body: JSON.stringify(emptySocials) });
+  state.socials = { ...emptySocials, ...data.socials };
+  state.socialsSaved = true;
+  continueAfterSocials();
+});
+
+document.querySelector("#editSocialsButton").addEventListener("click", () => renderSocials());
 
 document.querySelectorAll("[data-auth-view]").forEach((button) => button.addEventListener("click", () => showAuthView(button.dataset.authView)));
 document.querySelectorAll("[data-toggle]").forEach((button) => button.addEventListener("click", () => {

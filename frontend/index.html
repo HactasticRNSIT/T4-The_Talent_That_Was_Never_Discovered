@@ -84,13 +84,38 @@
       <header class="app-topbar">
         <div class="brand compact"><span class="brand-mark">HS</span><div><p class="eyebrow">HiddenSpark</p><h1>Talent Assessment</h1></div></div>
         <nav class="flow-stepper" aria-label="Assessment progress">
+          <span data-flow="social">Profile</span>
           <span data-flow="1">Section 1</span>
           <span data-flow="2">Section 2</span>
           <span data-flow="3">Section 3</span>
           <span data-flow="report">Your Report</span>
         </nav>
-        <div class="user-menu"><strong id="navUserName">Student</strong><button class="secondary-button" id="logoutButton" type="button">Logout</button></div>
+        <div class="user-menu"><strong id="navUserName">Student</strong><button class="ghost-button compact-button" id="editSocialsButton" type="button">Profile</button><button class="secondary-button" id="logoutButton" type="button">Logout</button></div>
       </header>
+
+      <section class="social-shell hidden" id="socialShell">
+        <form class="social-card" id="socialForm" novalidate>
+          <div class="social-heading">
+            <div>
+              <p class="eyebrow">Optional account links</p>
+              <h2>Complete Your Profile</h2>
+              <p>Connect your accounts so we can understand you better.</p>
+            </div>
+            <div class="completion-meter">
+              <strong id="socialPercent">0%</strong>
+              <span>complete</span>
+            </div>
+          </div>
+          <div class="progress-track"><div class="progress-bar" id="socialProgress"></div></div>
+          <p class="social-note">Fill whichever you have. The more you share, the better we understand you.</p>
+          <div class="social-list" id="socialList"></div>
+          <div class="form-actions">
+            <button class="ghost-button" id="skipSocials" type="button">Skip for Now</button>
+            <p class="autosave" id="socialMessage" aria-live="polite"></p>
+            <button class="primary-button" type="submit">Save & Continue</button>
+          </div>
+        </form>
+      </section>
 
       <section class="quiz-shell" id="quizShell">
         <div class="section-hero">

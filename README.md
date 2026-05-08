@@ -1,6 +1,6 @@
 # HiddenSpark Hidden Talent Identification
 
-A complete AI-powered hidden talent assessment app with signup, login, a 30-question protected quiz, autosaved answers, and a structured AI-style career/talent report.
+A complete AI-powered hidden talent assessment app with signup, login, optional social profile completion, a 30-question protected quiz, autosaved answers, and a structured AI-style career/talent report.
 
 ## Tech Stack
 
@@ -32,6 +32,8 @@ Auth:
 
 Protected app:
 
+- `GET /api/socials`
+- `POST /api/socials`
 - `GET /api/talent/state`
 - `POST /api/talent/answer`
 - `POST /api/talent/analyse`
@@ -40,8 +42,10 @@ Protected app:
 ## Assessment Flow
 
 ```text
-Login -> Section 1 (Q1-Q10) -> Section 2 (Q11-Q20) -> Section 3 (Q21-Q30) -> AI Report
+Login -> Complete Profile -> Section 1 (Q1-Q10) -> Section 2 (Q11-Q20) -> Section 3 (Q21-Q30) -> AI Report
 ```
+
+The social profile step stores optional LinkedIn, GitHub, Snapchat, Instagram, Facebook, Twitter/X, Reddit, Quora, and YouTube values in `backend/data/user-socials.json`.
 
 The final report includes personality traits, learning style, skill strength bars, hidden talents, leadership and entrepreneurial scores, career paths, roadmap, improvement suggestions, PDF print/download, and retake support.
 

@@ -19,9 +19,12 @@ const OTP_TTL_MS = 5 * 60 * 1000;
 
 const files = {
   users: path.join(DATA_DIR, "users.json"),
+  userSocials: path.join(DATA_DIR, "user-socials.json"),
   talentAnswers: path.join(DATA_DIR, "talent-answers.json"),
   talentReports: path.join(DATA_DIR, "talent-reports.json"),
 };
+
+const socialFields = ["linkedin", "github", "snapchat", "instagram", "facebook", "twitter", "reddit", "quora", "youtube"];
 
 app.use(express.json({ limit: "1mb" }));
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
@@ -69,6 +72,24 @@ function validateEmail(email) {
 
 function validatePassword(password) {
   return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password);
+}
+
+function isValidSocialValue(value) {
+  const text = cleanText(value);
+  if (!text) return true;
+  if (/^https?:\/\//i.test(text)) {
+    try {
+      const url = new URL(text);
+      return ["http:", "https:"].includes(url.protocol) && Boolean(url.hostname.includes("."));
+    } catch {
+      return false;
+    }
+  }
+  return !/\s/.test(text) && text.length <= 120;
+}
+
+function normalizeSocials(body) {
+  return Object.fromEntries(socialFields.map((field) => [field, cleanText(body[field])]));
 }
 
 function publicUser(user) {
@@ -386,8 +407,9 @@ app.post("/api/auth/reset-password", async (req, res) => {
 });
 
 app.get("/api/talent/state", requireAuth, async (req, res) => {
-  const [users, answers, reports] = await Promise.all([
+  const [users, socials, answers, reports] = await Promise.all([
     readCollection("users"),
+    readCollection("userSocials"),
     readCollection("talentAnswers"),
     readCollection("talentReports"),
   ]);
@@ -396,9 +418,40 @@ app.get("/api/talent/state", requireAuth, async (req, res) => {
 
   return res.json({
     user: publicUser(user),
+    socials: socials.find((item) => item.userId === req.auth.sub) || null,
     answers: answers.filter((item) => item.userId === req.auth.sub).sort((a, b) => a.question_number - b.question_number),
     report: reports.filter((item) => item.userId === req.auth.sub).at(-1) || null,
   });
+});
+
+app.get("/api/socials", requireAuth, async (req, res) => {
+  const socials = await readCollection("userSocials");
+  return res.json({ socials: socials.find((item) => item.userId === req.auth.sub) || null });
+});
+
+app.post("/api/socials", requireAuth, async (req, res) => {
+  const values = normalizeSocials(req.body);
+  const invalid = socialFields.filter((field) => !isValidSocialValue(values[field]));
+  if (invalid.length) {
+    return res.status(400).json({
+      message: "Please enter valid URLs or usernames for the highlighted social accounts.",
+      errors: Object.fromEntries(invalid.map((field) => [field, "Enter a valid URL or username."])),
+    });
+  }
+
+  const socials = await readCollection("userSocials");
+  const entry = {
+    id: crypto.randomUUID(),
+    userId: req.auth.sub,
+    ...values,
+    updatedAt: new Date().toISOString(),
+  };
+  const index = socials.findIndex((item) => item.userId === req.auth.sub);
+  if (index >= 0) socials[index] = { ...socials[index], ...entry, id: socials[index].id };
+  else socials.push(entry);
+
+  await writeCollection("userSocials", socials);
+  return res.json({ message: "Social profile saved.", socials: index >= 0 ? socials[index] : entry });
 });
 
 app.post("/api/talent/answer", requireAuth, async (req, res) => {
