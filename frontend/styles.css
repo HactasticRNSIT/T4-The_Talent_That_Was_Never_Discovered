@@ -979,10 +979,36 @@ form {
 
 .tag-cloud span {
   border-radius: 8px;
-  background: #e4f2ec;
+  background: var(--tag-bg, #e4f2ec);
   color: var(--accent-strong);
   padding: 9px 12px;
   font-weight: 800;
+}
+
+.app-toast {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 70;
+  max-width: min(360px, calc(100vw - 44px));
+  border: 1px solid rgba(15, 123, 104, 0.22);
+  border-radius: 8px;
+  background: #10221d;
+  color: #f8fbf9;
+  box-shadow: var(--shadow);
+  padding: 13px 15px;
+  font-weight: 800;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.app-toast.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .skill-bar,

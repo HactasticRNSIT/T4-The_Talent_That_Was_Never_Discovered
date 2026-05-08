@@ -9,13 +9,19 @@ const loadingMessages = [
   "Building your career roadmap...",
 ];
 
-const publicProfileMessages = [
+const publicProfileMessagePool = [
   "Scanning your public profiles...",
   "Analysing your GitHub activity...",
   "Reading your LinkedIn presence...",
-  "Detecting patterns and interests...",
-  "Identifying hidden talents...",
+  "Checking your social footprint...",
+  "Detecting patterns in your interests...",
+  "Identifying hidden strengths...",
+  "Mapping your personality signals...",
+  "Connecting the dots across your profiles...",
+  "Uncovering your unique potential...",
   "Building your personalized report...",
+  "Almost there...",
+  "Finalising your talent profile...",
 ];
 
 const socialPlatforms = [
@@ -218,8 +224,10 @@ const state = {
   socials: { ...emptySocials },
   socialsSaved: false,
   section1TalentTag: "",
+  publicReportGenerations: 0,
   saveTimer: null,
   loadingTimer: null,
+  toastTimer: null,
 };
 
 const authShell = document.querySelector("#authShell");
@@ -321,6 +329,33 @@ function scoreOutOfTen(value) {
 
 function scorePercent(value) {
   return Math.min(100, Math.max(0, scoreOutOfTen(value) * 10));
+}
+
+function shuffled(items) {
+  return [...items].sort(() => Math.random() - 0.5);
+}
+
+function randomPublicMessages() {
+  return shuffled(publicProfileMessagePool).slice(0, 6);
+}
+
+function randomTraitColor() {
+  const colors = ["#e4f2ec", "#fff1c7", "#e8eef9", "#fbe4eb", "#edf5f1", "#f0eadb"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function showToast(message) {
+  let toast = document.querySelector("#appToast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "appToast";
+    toast.className = "app-toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add("show");
+  window.clearTimeout(state.toastTimer);
+  state.toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2600);
 }
 
 function logout() {
@@ -643,7 +678,11 @@ function delay(ms) {
 }
 
 async function generatePublicDataReport() {
-  showGenerationOverlay(true, publicProfileMessages, 1800);
+  if (state.publicReportGenerations > 0 || state.report?.report_type === "public_data") {
+    showToast("Generating a fresh new report for you...");
+  }
+  state.publicReportGenerations += 1;
+  showGenerationOverlay(true, randomPublicMessages(), 1800);
   try {
     const [data] = await Promise.all([
       request("/api/talent/public-report", { method: "POST", body: "{}" }),
@@ -663,6 +702,7 @@ function renderReport(report) {
   reportShell.classList.remove("hidden");
   markFlow("report");
   const skills = Object.entries(report.skill_strength_scores || {}).slice(0, 5);
+  const visibleSkills = report.report_type === "public_data" ? shuffled(skills) : skills;
   const roadmap = String(report.career_roadmap || "").split("|").map((item) => item.trim()).filter(Boolean);
   const publicDataBanner = report.report_type === "public_data" ? `
     <aside class="report-warning">
@@ -680,10 +720,10 @@ function renderReport(report) {
 
     <section class="report-section">
       <p class="section-label">Section A - Who You Are</p>
-      <div class="tag-cloud">${(report.personality_traits || []).map((trait) => `<span>${escapeHtml(trait)}</span>`).join("")}</div>
+      <div class="tag-cloud">${(report.personality_traits || []).map((trait) => `<span style="${report.report_type === "public_data" ? `--tag-bg:${randomTraitColor()}` : ""}">${escapeHtml(trait)}</span>`).join("")}</div>
       <div class="report-grid two">
         <article class="report-card"><h3>Learning Style</h3><p>${escapeHtml(report.learning_style || "")}</p></article>
-        <article class="report-card"><h3>Top 5 Strongest Skills</h3>${skills.map(([skill, score]) => `<div class="skill-bar"><span>${escapeHtml(skill)}</span><div><i style="width:${scorePercent(score)}%"></i></div><strong>${scoreOutOfTen(score)}/10</strong></div>`).join("")}</article>
+        <article class="report-card"><h3>Top 5 Strongest Skills</h3>${visibleSkills.map(([skill, score]) => `<div class="skill-bar"><span>${escapeHtml(skill)}</span><div><i style="width:${scorePercent(score)}%"></i></div><strong>${scoreOutOfTen(score)}/10</strong></div>`).join("")}</article>
       </div>
     </section>
 
@@ -825,7 +865,7 @@ document.querySelector("#signupForm").addEventListener("submit", async (event) =
     await request("/api/auth/signup", { method: "POST", body: JSON.stringify({ ...values, phone: normalizePhone(values.phone) }) });
     event.currentTarget.reset();
     showAuthView("login");
-    setMessage("loginMessage", "Account created. Please log in.", "success");
+    setMessage("loginMessage", "Sign up success. Please log in.", "success");
   } catch (error) {
     setMessage("signupMessage", error.message, "error");
   } finally {

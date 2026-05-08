@@ -462,81 +462,187 @@ function localTalentReport(answers, quizRecord = null) {
   };
 }
 
-function publicProfileTalentReport(socials = {}, user = {}) {
-  const filledProfiles = socialFields.filter((field) => cleanText(socials[field]));
-  const hasGithub = Boolean(cleanText(socials.github));
-  const hasLinkedin = Boolean(cleanText(socials.linkedin));
-  const hasCreative = ["instagram", "youtube", "snapchat"].some((field) => cleanText(socials[field]));
-  const hasCommunity = ["reddit", "quora", "facebook", "twitter"].some((field) => cleanText(socials[field]));
+function randomItem(items) {
+  return items[crypto.randomInt(0, items.length)];
+}
 
-  const skill_strength_scores = {
-    "Digital Presence": clampScore(7.1 + filledProfiles.length * 0.16),
-    "Technical Building": clampScore(hasGithub ? 8.4 : 6.7),
-    Communication: clampScore(hasLinkedin || hasCommunity ? 7.8 : 6.6),
-    "Creative Ideation": clampScore(hasCreative ? 8.1 : 6.9),
-    "Problem Solving": clampScore(hasGithub || hasCommunity ? 7.9 : 6.8),
+function randomSample(items, count) {
+  return [...items].sort(() => Math.random() - 0.5).slice(0, count);
+}
+
+function randomScore() {
+  return Number((5 + Math.random() * 4.6).toFixed(1));
+}
+
+function normalizePublicReport(report, userName) {
+  const topSkills = Array.isArray(report.top_5_skills) ? report.top_5_skills.slice(0, 5) : [];
+  const scoreEntries = Object.entries(report.skill_strength_scores || {}).slice(0, 5);
+  const skillNames = topSkills.length ? topSkills : scoreEntries.map(([skill]) => skill);
+  const skill_strength_scores = Object.fromEntries(
+    skillNames.slice(0, 5).map((skill, index) => {
+      const score = Number(report.skill_strength_scores?.[skill] ?? scoreEntries[index]?.[1] ?? randomScore());
+      return [skill, Math.max(5, Math.min(10, Number.isFinite(score) ? score : randomScore()))];
+    }),
+  );
+
+  return {
+    hidden_talents: Array.isArray(report.hidden_talents) ? report.hidden_talents.slice(0, 3) : [],
+    top_5_skills: Object.keys(skill_strength_scores),
+    skill_strength_scores,
+    personality_traits: Array.isArray(report.personality_traits) ? report.personality_traits.slice(0, 4) : [],
+    leadership_potential: {
+      score: Math.max(5, Math.min(10, Number(report.leadership_potential?.score) || randomScore())),
+      analysis: cleanText(report.leadership_potential?.analysis),
+    },
+    creativity_analysis: cleanText(report.creativity_analysis),
+    communication_eq_analysis: cleanText(report.communication_eq_analysis),
+    learning_style: ["Visual", "Auditory", "Reading/Writing", "Kinesthetic"].includes(report.learning_style) ? report.learning_style : "Visual",
+    best_career_paths: Array.isArray(report.best_career_paths) ? report.best_career_paths.slice(0, 3) : [],
+    emerging_careers: Array.isArray(report.emerging_careers) ? report.emerging_careers.slice(0, 3) : [],
+    entrepreneurial_potential_score: Math.max(5, Math.min(10, Number(report.entrepreneurial_potential_score) || randomScore())),
+    most_underrated_talent: cleanText(report.most_underrated_talent),
+    unrealized_potential: Array.isArray(report.unrealized_potential) ? report.unrealized_potential.slice(0, 3) : [],
+    skill_improvements: Array.isArray(report.skill_improvements) ? report.skill_improvements.slice(0, 3) : [],
+    career_roadmap: cleanText(report.career_roadmap),
+    final_summary: cleanText(report.final_summary) || `${userName} has a promising blend of curiosity, adaptable thinking, and growth potential.`,
   };
+}
+
+function randomizedPublicProfileTalentReport(user = {}) {
+  const name = user.name || "This student";
+  const skills = randomSample([
+    "Technical Curiosity",
+    "Creative Storytelling",
+    "Strategic Thinking",
+    "Team Leadership",
+    "Scientific Reasoning",
+    "Digital Communication",
+    "Business Awareness",
+    "Athletic Discipline",
+    "Visual Design",
+    "Community Building",
+    "Data Interpretation",
+    "Problem Solving",
+  ], 5);
+  const skill_strength_scores = Object.fromEntries(skills.map((skill) => [skill, randomScore()]));
+  const careerPaths = randomSample([
+    "AI Product Builder",
+    "UX Designer",
+    "Sports Performance Analyst",
+    "Startup Founder",
+    "Research Scientist",
+    "Content Strategist",
+    "Product Manager",
+    "Social Innovation Lead",
+    "Data Analyst",
+    "Creative Technologist",
+  ], 3);
 
   return {
     report_type: "public_data",
-    hidden_talents: [
-      "Digital portfolio building potential",
-      hasGithub ? "Technical project execution" : "Structured online learning potential",
-      hasCreative ? "Creative content expression" : "Clear personal brand development",
-      hasCommunity ? "Community insight and communication" : "Independent learning discipline",
-    ],
-    top_5_skills: Object.keys(skill_strength_scores),
+    hidden_talents: randomSample([
+      "Pattern recognition under pressure",
+      "Original idea generation",
+      "Quiet leadership through reliability",
+      "Practical technical experimentation",
+      "Persuasive communication",
+      "Fast skill adaptation",
+      "Creative problem framing",
+      "Competitive focus and discipline",
+    ], 3),
+    top_5_skills: skills,
     skill_strength_scores,
-    personality_traits: [
-      "Digitally curious",
-      hasGithub ? "Builder-minded" : "Exploratory",
-      hasLinkedin ? "Career-aware" : "Self-directed",
-      hasCreative ? "Expressive" : "Thoughtful",
-      hasCommunity ? "Community-oriented" : "Focused",
-    ],
+    personality_traits: randomSample(["Curious", "Inventive", "Resilient", "Analytical", "Expressive", "Organized", "Empathetic", "Bold", "Independent", "Collaborative"], 4),
     leadership_potential: {
-      score: hasLinkedin || hasCommunity ? 8 : 7,
-      analysis:
-        "Your public profile footprint suggests emerging leadership through communication, self-presentation, and the ability to connect interests into visible work.",
+      score: randomScore(),
+      analysis: `${name} shows signs of leadership through initiative and thoughtful decision-making. With more chances to guide real projects, this could become a visible strength.`,
     },
     creativity_analysis:
-      hasCreative
-        ? "Your public presence shows signs of creative expression and audience awareness. This can become a strong advantage when paired with consistent projects and a clear portfolio."
-        : "Your creativity appears more strategic than performative from the available public data, showing up through how you organize interests and present your learning path.",
+      `${name} appears capable of connecting ideas across different domains. The strongest creative signal is the ability to turn interests into concrete projects or expressive work.`,
     communication_eq_analysis:
-      "Your available public profiles suggest practical communication ability: presenting yourself clearly, sharing interests, and building a recognizable online identity.",
-    learning_style:
-      "Self-directed digital learning with visible proof of work, profile building, and iterative improvement.",
-    best_career_paths: [
-      hasGithub ? "Software Developer or AI Product Builder" : "Digital Product Associate",
-      hasCreative ? "Content Strategist or Creative Technologist" : "UX Researcher or Product Analyst",
-      hasLinkedin ? "Product Manager or Program Lead" : "Community Manager or Learning Designer",
-    ],
-    emerging_careers: [
-      "AI Product Builder",
-      "Creator-Operator",
-      "Digital Portfolio Strategist",
-      "Human-Centered Data Analyst",
-    ],
-    entrepreneurial_potential_score: filledProfiles.length >= 4 ? 8 : 7,
-    most_underrated_talent: "Turning online signals into career direction",
-    unrealized_potential: [
-      "Convert scattered interests into one polished public portfolio.",
-      "Add measurable outcomes to projects, posts, or profile descriptions.",
-      "Use public work samples to validate strengths before choosing a career path.",
-    ],
-    skill_improvements: [
-      "Create one portfolio page that connects your projects, profiles, and goals.",
-      "Publish one small project or learning note every two weeks.",
-      "Add clear descriptions, outcomes, and tools used to each public project.",
-      "Ask a mentor or peer to review your profile positioning once per month.",
-    ],
-    career_roadmap:
-      "0-3 months: clean up public profiles and collect your best work in one place. | 3-6 months: publish two small projects with outcomes and reflections. | 6-12 months: choose one career theme and build a portfolio around it. | 1-2 years: pursue internships, competitions, freelance work, or mentorship tied to your strongest public signals.",
+      `${name} may communicate best when there is a clear purpose and audience. Emotional intelligence can grow quickly through teamwork, feedback, and mentoring situations.`,
+    learning_style: randomItem(["Visual", "Auditory", "Reading/Writing", "Kinesthetic"]),
+    best_career_paths: careerPaths,
+    emerging_careers: randomSample(["AI Ethics Analyst", "Human-Centered Data Analyst", "Climate Tech Innovator", "Creator-Operator", "Bioinformatics Explorer", "Robotics Experience Designer", "Digital Wellness Strategist"], 3),
+    entrepreneurial_potential_score: randomScore(),
+    most_underrated_talent: `${randomItem(["Connecting ideas", "Learning independently", "Staying calm under pressure", "Spotting opportunities"])} could become a major advantage with consistent practice.`,
+    unrealized_potential: randomSample(["Build a visible portfolio", "Practice public communication", "Join competitions or clubs", "Work with mentors", "Turn interests into measurable projects"], 3),
+    skill_improvements: randomSample(["Create one project in the next 30 days.", "Ask for feedback from two people each month.", "Document wins, mistakes, and lessons weekly.", "Publish a small portfolio update regularly.", "Practice explaining your work in simple language."], 3),
+    career_roadmap: `Start by choosing one strong interest and building a small project around it. Next, collect feedback and improve the project. Then connect that work to one of these paths: ${careerPaths.join(", ")}. Finally, create a simple portfolio that shows progress over time.`,
     final_summary:
-      `${user.name || "Your"} public data suggests a digitally curious learner with potential in communication, self-directed growth, and project-based skill building. This report is intentionally limited because public profiles reveal signals, not the full story. A full questionnaire can sharpen these findings with motivation, confidence, personality, and deeper career-fit context.`,
-    source: "public-profile-placeholder",
+      `${name} has a unique mix of strengths that could develop in several directions. The strongest signals point toward ${skills.slice(0, 2).join(" and ").toLowerCase()}. With consistent practice and visible projects, these strengths can become clearer and more career-ready. The best next step is to explore one path deeply while keeping room for creativity and experimentation.`,
+    source: "local-randomized-public-report",
   };
+}
+
+async function generatePublicProfileTalentReport(user = {}) {
+  const userName = user.name || "Student";
+  if (!process.env.OPENAI_API_KEY) return randomizedPublicProfileTalentReport(user);
+
+  const prompt = `You are a Student Talent Analysis AI.
+
+Generate a completely randomized but realistic and believable student talent report.
+Every time this is called, the output must be different — vary the talents, skills,
+scores, personality traits, career paths, and summaries each time.
+
+Use the student's name: ${userName}
+
+Return ONLY a JSON object with no extra text, in this exact format:
+
+{
+  "hidden_talents": [3 different random talents],
+  "top_5_skills": [5 different random skills],
+  "skill_strength_scores": {
+    "skill_name": random score between 5 and 10
+  },
+  "personality_traits": [4 random traits],
+  "leadership_potential": {
+    "score": random number between 5 and 10,
+    "analysis": "2 sentence analysis"
+  },
+  "creativity_analysis": "2-3 sentence paragraph",
+  "communication_eq_analysis": "2-3 sentence paragraph",
+  "learning_style": one of ["Visual", "Auditory", "Reading/Writing", "Kinesthetic"],
+  "best_career_paths": [3 different career paths],
+  "emerging_careers": [3 future-forward career suggestions],
+  "entrepreneurial_potential_score": random number between 5 and 10,
+  "most_underrated_talent": "one talent with explanation",
+  "unrealized_potential": [2-3 areas],
+  "skill_improvements": [3 actionable suggestions],
+  "career_roadmap": "a short 3-4 step roadmap paragraph",
+  "final_summary": "a unique 4-5 sentence summary about the student's potential"
+}
+
+Rules:
+- Never repeat the same combination of talents, traits, or careers
+- Vary writing style and tone slightly each time
+- Keep all scores realistic (never all 10s or all 5s)
+- Make the summary feel personal using the student's name
+- Mix different domains randomly: tech, arts, leadership, science, business, social, sports`;
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "Return strict JSON only. No markdown." },
+          { role: "user", content: prompt },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 1.1,
+      }),
+    });
+    const data = await response.json();
+    return { ...normalizePublicReport(JSON.parse(data.choices[0].message.content), userName), source: "openai-public-randomized" };
+  } catch (error) {
+    console.error("Public report AI fallback:", error.message);
+    return randomizedPublicProfileTalentReport(user);
+  }
 }
 
 async function generateTalentReport(answers, quizRecord = null) {
@@ -789,13 +895,15 @@ app.post("/api/talent/analyse", requireAuth, async (req, res) => {
   let quizRecord = quizRecords.find((item) => item.userId === req.auth.sub);
   if (!quizRecord?.section1_talent_tag) quizRecord = await upsertQuizRecord(req.auth.sub, answers);
   const generated = await generateTalentReport(answers, quizRecord);
+  const generatedAt = new Date().toISOString();
   const report = {
     id: crypto.randomUUID(),
     userId: req.auth.sub,
     ...generated,
     report_type: "questionnaire",
     section1_talent_tag: quizRecord.section1_talent_tag,
-    generatedAt: new Date().toISOString(),
+    generated_at: generatedAt,
+    generatedAt,
   };
   const reports = await readCollection("talentReports");
   reports.push(report);
@@ -804,21 +912,22 @@ app.post("/api/talent/analyse", requireAuth, async (req, res) => {
 });
 
 app.post("/api/talent/public-report", requireAuth, async (req, res) => {
-  const [users, socials, reports] = await Promise.all([
+  const [users, reports] = await Promise.all([
     readCollection("users"),
-    readCollection("userSocials"),
     readCollection("talentReports"),
   ]);
   const user = users.find((item) => item.id === req.auth.sub);
   if (!user) return res.status(404).json({ message: "User not found." });
 
-  const generated = publicProfileTalentReport(socials.find((item) => item.userId === req.auth.sub) || {}, publicUser(user));
+  const generated = await generatePublicProfileTalentReport(publicUser(user));
+  const generatedAt = new Date().toISOString();
   const report = {
     id: crypto.randomUUID(),
     userId: req.auth.sub,
     ...generated,
     report_type: "public_data",
-    generatedAt: new Date().toISOString(),
+    generated_at: generatedAt,
+    generatedAt,
   };
   reports.push(report);
   await writeCollection("talentReports", reports);
