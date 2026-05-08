@@ -3,17 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HiddenSpark | Auth</title>
+    <title>HiddenSpark | Talent Intelligence</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="auth-shell">
+    <main class="auth-shell" id="authShell">
       <section class="brand-panel" aria-label="HiddenSpark overview">
         <div class="brand">
           <span class="brand-mark">HS</span>
@@ -23,177 +20,113 @@
           </div>
         </div>
         <div class="brand-copy">
-          <p class="eyebrow">Secure access</p>
-          <h2>Discover student potential with accounts that feel calm and trustworthy.</h2>
-          <p>
-            Sign up, log in, or recover access with a phone-based OTP flow. The backend stores hashed
-            passwords and returns JWT sessions for the app dashboard.
-          </p>
+          <p class="eyebrow">Talent intelligence</p>
+          <h2>Map interests, strengths, and future-fit domains from real student evidence.</h2>
+          <p>Secure login unlocks a profile flow, AI-style analysis, domain confirmation, and a curated domain quiz.</p>
         </div>
         <dl class="security-list">
-          <div>
-            <dt>bcrypt</dt>
-            <dd>Password hashes only</dd>
-          </div>
-          <div>
-            <dt>JWT</dt>
-            <dd>Session token on login</dd>
-          </div>
-          <div>
-            <dt>OTP</dt>
-            <dd>Mocked SMS reset flow</dd>
-          </div>
+          <div><dt>Profile</dt><dd>Drafts saved by user</dd></div>
+          <div><dt>Analysis</dt><dd>Domain confidence chart</dd></div>
+          <div><dt>Quiz</dt><dd>10 curated questions</dd></div>
         </dl>
       </section>
 
       <section class="auth-panel">
         <div class="tabs" role="tablist" aria-label="Authentication views">
-          <button class="tab active" id="loginTab" type="button" data-view="login">Login</button>
-          <button class="tab" id="signupTab" type="button" data-view="signup">Signup</button>
+          <button class="tab active" id="loginTab" type="button" data-auth-view="login">Login</button>
+          <button class="tab" id="signupTab" type="button" data-auth-view="signup">Signup</button>
         </div>
 
-        <section class="view active" id="loginView" aria-labelledby="loginTab">
-          <div class="view-heading">
-            <p class="eyebrow">Welcome back</p>
-            <h2>Login to your dashboard</h2>
-          </div>
+        <section class="auth-view active" id="loginView">
+          <div class="view-heading"><p class="eyebrow">Welcome back</p><h2>Login to continue</h2></div>
           <form id="loginForm" novalidate>
-            <div class="field">
-              <label for="loginEmail">Email</label>
-              <input id="loginEmail" name="email" type="email" autocomplete="email" required />
-              <span class="error" data-error-for="loginEmail"></span>
-            </div>
-            <div class="field">
-              <label for="loginPassword">Password</label>
-              <div class="password-field">
-                <input id="loginPassword" name="password" type="password" autocomplete="current-password" required />
-                <button class="toggle-password" type="button" data-toggle="loginPassword">Show</button>
-              </div>
-              <span class="error" data-error-for="loginPassword"></span>
-            </div>
-            <button class="link-button" type="button" data-view="forgot">Forgot Password?</button>
+            <div class="field"><label for="loginEmail">Email</label><input id="loginEmail" name="email" type="email" autocomplete="email" /><span class="error" data-error-for="loginEmail"></span></div>
+            <div class="field"><label for="loginPassword">Password</label><div class="password-field"><input id="loginPassword" name="password" type="password" autocomplete="current-password" /><button class="toggle-password" type="button" data-toggle="loginPassword">Show</button></div><span class="error" data-error-for="loginPassword"></span></div>
+            <button class="link-button" type="button" data-auth-view="forgot">Forgot Password?</button>
             <button class="primary-button" type="submit">Login</button>
             <p class="form-message" id="loginMessage" aria-live="polite"></p>
           </form>
         </section>
 
-        <section class="view" id="signupView" aria-labelledby="signupTab">
-          <div class="view-heading">
-            <p class="eyebrow">Create account</p>
-            <h2>Start with your details</h2>
-          </div>
+        <section class="auth-view" id="signupView">
+          <div class="view-heading"><p class="eyebrow">Create account</p><h2>Start your profile</h2></div>
           <form id="signupForm" novalidate>
             <div class="form-grid">
-              <div class="field">
-                <label for="signupName">Full Name</label>
-                <input id="signupName" name="name" type="text" autocomplete="name" required />
-                <span class="error" data-error-for="signupName"></span>
-              </div>
-              <div class="field">
-                <label for="signupAge">Age</label>
-                <input id="signupAge" name="age" type="number" min="1" max="120" required />
-                <span class="error" data-error-for="signupAge"></span>
-              </div>
-              <div class="field">
-                <label for="signupPhone">Phone Number</label>
-                <input id="signupPhone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" required />
-                <span class="error" data-error-for="signupPhone"></span>
-              </div>
-              <div class="field">
-                <label for="signupEmail">Email</label>
-                <input id="signupEmail" name="email" type="email" autocomplete="email" required />
-                <span class="error" data-error-for="signupEmail"></span>
-              </div>
-              <div class="field">
-                <label for="signupPassword">Password</label>
-                <div class="password-field">
-                  <input id="signupPassword" name="password" type="password" autocomplete="new-password" required />
-                  <button class="toggle-password" type="button" data-toggle="signupPassword">Show</button>
-                </div>
-                <span class="error" data-error-for="signupPassword"></span>
-              </div>
-              <div class="field">
-                <label for="signupConfirmPassword">Confirm Password</label>
-                <div class="password-field">
-                  <input id="signupConfirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required />
-                  <button class="toggle-password" type="button" data-toggle="signupConfirmPassword">Show</button>
-                </div>
-                <span class="error" data-error-for="signupConfirmPassword"></span>
-              </div>
+              <div class="field"><label for="signupName">Full Name</label><input id="signupName" name="name" type="text" autocomplete="name" /><span class="error" data-error-for="signupName"></span></div>
+              <div class="field"><label for="signupAge">Age</label><input id="signupAge" name="age" type="number" min="1" max="120" /><span class="error" data-error-for="signupAge"></span></div>
+              <div class="field"><label for="signupPhone">Phone Number</label><input id="signupPhone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" /><span class="error" data-error-for="signupPhone"></span></div>
+              <div class="field"><label for="signupEmail">Email</label><input id="signupEmail" name="email" type="email" autocomplete="email" /><span class="error" data-error-for="signupEmail"></span></div>
+              <div class="field"><label for="signupPassword">Password</label><div class="password-field"><input id="signupPassword" name="password" type="password" autocomplete="new-password" /><button class="toggle-password" type="button" data-toggle="signupPassword">Show</button></div><span class="error" data-error-for="signupPassword"></span></div>
+              <div class="field"><label for="signupConfirmPassword">Confirm Password</label><div class="password-field"><input id="signupConfirmPassword" name="confirmPassword" type="password" autocomplete="new-password" /><button class="toggle-password" type="button" data-toggle="signupConfirmPassword">Show</button></div><span class="error" data-error-for="signupConfirmPassword"></span></div>
             </div>
             <button class="primary-button" type="submit">Create Account</button>
             <p class="form-message" id="signupMessage" aria-live="polite"></p>
           </form>
         </section>
 
-        <section class="view" id="forgotView">
-          <div class="view-heading">
-            <p class="eyebrow">Password recovery</p>
-            <h2 id="forgotTitle">Verify your phone</h2>
-          </div>
-          <div class="reset-steps" aria-label="Reset progress">
-            <span class="reset-step active" data-reset-step="phone">Phone</span>
-            <span class="reset-step" data-reset-step="otp">OTP</span>
-            <span class="reset-step" data-reset-step="password">New Password</span>
-          </div>
-          <form id="phoneForm" class="reset-form active" novalidate>
-            <div class="field">
-              <label for="resetPhone">Registered Phone Number</label>
-              <input id="resetPhone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" required />
-              <span class="error" data-error-for="resetPhone"></span>
-            </div>
-            <button class="primary-button" type="submit">Send OTP</button>
-          </form>
-          <form id="otpForm" class="reset-form" novalidate>
-            <div class="field">
-              <label for="otpCode">Enter OTP</label>
-              <input id="otpCode" name="otp" type="text" inputmode="numeric" maxlength="6" required />
-              <span class="error" data-error-for="otpCode"></span>
-            </div>
-            <button class="primary-button" type="submit">Verify OTP</button>
-          </form>
+        <section class="auth-view" id="forgotView">
+          <div class="view-heading"><p class="eyebrow">Password recovery</p><h2 id="forgotTitle">Verify your phone</h2></div>
+          <div class="reset-steps"><span class="reset-step active" data-reset-step="phone">Phone</span><span class="reset-step" data-reset-step="otp">OTP</span><span class="reset-step" data-reset-step="password">New Password</span></div>
+          <form id="phoneForm" class="reset-form active" novalidate><div class="field"><label for="resetPhone">Registered Phone Number</label><input id="resetPhone" name="phone" type="tel" inputmode="numeric" /><span class="error" data-error-for="resetPhone"></span></div><button class="primary-button" type="submit">Send OTP</button></form>
+          <form id="otpForm" class="reset-form" novalidate><div class="field"><label for="otpCode">Enter OTP</label><input id="otpCode" name="otp" type="text" inputmode="numeric" maxlength="6" /><span class="error" data-error-for="otpCode"></span></div><button class="primary-button" type="submit">Verify OTP</button></form>
           <form id="resetPasswordForm" class="reset-form" novalidate>
-            <div class="field">
-              <label for="newPassword">New Password</label>
-              <div class="password-field">
-                <input id="newPassword" name="password" type="password" autocomplete="new-password" required />
-                <button class="toggle-password" type="button" data-toggle="newPassword">Show</button>
-              </div>
-              <span class="error" data-error-for="newPassword"></span>
-            </div>
-            <div class="field">
-              <label for="confirmNewPassword">Confirm New Password</label>
-              <div class="password-field">
-                <input id="confirmNewPassword" name="confirmPassword" type="password" autocomplete="new-password" required />
-                <button class="toggle-password" type="button" data-toggle="confirmNewPassword">Show</button>
-              </div>
-              <span class="error" data-error-for="confirmNewPassword"></span>
-            </div>
+            <div class="field"><label for="newPassword">New Password</label><div class="password-field"><input id="newPassword" name="password" type="password" /><button class="toggle-password" type="button" data-toggle="newPassword">Show</button></div><span class="error" data-error-for="newPassword"></span></div>
+            <div class="field"><label for="confirmNewPassword">Confirm New Password</label><div class="password-field"><input id="confirmNewPassword" name="confirmPassword" type="password" /><button class="toggle-password" type="button" data-toggle="confirmNewPassword">Show</button></div><span class="error" data-error-for="confirmNewPassword"></span></div>
             <button class="primary-button" type="submit">Reset Password</button>
           </form>
-          <button class="link-button back-link" type="button" data-view="login">Back to Login</button>
+          <button class="link-button back-link" type="button" data-auth-view="login">Back to Login</button>
           <p class="form-message" id="forgotMessage" aria-live="polite"></p>
         </section>
+      </section>
+    </main>
 
-        <section class="view dashboard" id="dashboardView">
-          <div class="view-heading">
-            <p class="eyebrow">Dashboard</p>
-            <h2 id="dashboardName">You are signed in</h2>
-          </div>
-          <div class="dashboard-grid">
-            <article>
-              <span>Session</span>
-              <strong>JWT active</strong>
-              <p>Your token is stored in localStorage for this demo.</p>
-            </article>
-            <article>
-              <span>Next step</span>
-              <strong>HiddenSpark home</strong>
-              <p>Connect protected app pages to this authenticated state.</p>
-            </article>
-          </div>
-          <button class="secondary-button" id="logoutButton" type="button">Logout</button>
-        </section>
+    <main class="app-shell hidden" id="appShell">
+      <header class="app-topbar">
+        <div class="brand compact"><span class="brand-mark">HS</span><div><p class="eyebrow">HiddenSpark</p><h1>Talent Intelligence</h1></div></div>
+        <nav class="flow-stepper" aria-label="Progress"><span data-flow="profile">Profile</span><span data-flow="analysis">Analysis</span><span data-flow="domain">Domain</span><span data-flow="quiz">Quiz</span></nav>
+        <div class="user-menu"><strong id="navUserName">Student</strong><button class="secondary-button" id="logoutButton" type="button">Logout</button></div>
+      </header>
+
+      <section class="app-view active" id="profileView">
+        <div class="workspace-card">
+          <div class="view-heading"><p class="eyebrow" id="profileStepMeta">Step 1 of 5</p><h2 id="profileStepTitle">Personal Info</h2></div>
+          <div class="progress-track"><div class="progress-bar" id="profileProgress"></div></div>
+          <form id="profileForm" novalidate><div id="profileStepContent"></div><div class="form-actions"><button class="ghost-button" id="profileBack" type="button">Back</button><button class="secondary-button" id="saveDraft" type="button">Save Draft</button><button class="primary-button" id="profileNext" type="submit">Continue</button></div><p class="form-message" id="profileMessage"></p></form>
+        </div>
+      </section>
+
+      <section class="app-view" id="analysisView">
+        <div class="workspace-card">
+          <div class="view-heading"><p class="eyebrow">AI analysis dashboard</p><h2>Your Profile Summary</h2></div>
+          <div class="skeleton hidden" id="analysisLoading"><span></span><span></span><span></span></div>
+          <p class="summary-copy" id="analysisSummary"></p>
+          <div class="analysis-grid"><div class="chart-panel" id="domainChart"></div><div class="reason-panel"><h3>Why we think this</h3><div id="reasoningList"></div></div></div>
+          <button class="primary-button" id="toDomainButton" type="button">Confirm Domain</button>
+        </div>
+      </section>
+
+      <section class="app-view" id="domainView">
+        <div class="workspace-card">
+          <div class="view-heading"><p class="eyebrow">Domain confirmation</p><h2>Choose your focus domain</h2></div>
+          <form id="domainForm"><div class="suggestion-grid" id="domainSuggestions"></div><div class="field"><label for="manualDomain">Or select another domain</label><select id="manualDomain"></select></div><div class="field"><label for="domainNote">Why are you interested in this domain?</label><textarea id="domainNote" rows="4"></textarea></div><button class="primary-button" type="submit">Save and Start Quiz</button><p class="form-message" id="domainMessage"></p></form>
+        </div>
+      </section>
+
+      <section class="app-view" id="quizView">
+        <div class="workspace-card">
+          <div class="view-heading"><p class="eyebrow" id="quizMeta">Question 1 of 10</p><h2 id="quizDomainTitle">Domain Quiz</h2></div>
+          <div class="progress-track"><div class="progress-bar" id="quizProgress"></div></div>
+          <form id="quizForm"><div id="quizQuestion"></div><div class="form-actions"><button class="ghost-button" id="quizBack" type="button">Back</button><button class="primary-button" type="submit" id="quizNext">Next</button></div></form>
+        </div>
+      </section>
+
+      <section class="app-view" id="submittedView">
+        <div class="workspace-card submitted">
+          <p class="eyebrow">Responses submitted</p>
+          <h2>Quiz complete</h2>
+          <p id="quizFeedback"></p>
+          <button class="secondary-button" id="restartProfile" type="button">Update Profile</button>
+        </div>
       </section>
     </main>
 

@@ -1,3 +1,4 @@
 backend/node_modules/
-backend/data/users.json
+backend/data/*.json
 backend/.env
+backend/*.log
